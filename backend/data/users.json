@@ -1,0 +1,10 @@
+[
+  {
+    "student_id": "s1",
+    "username": "alice",
+    "name": "Alice",
+    "role": "student",
+    "password_salt": "nlzWVVAZXdDVaqZJ2o_4zA",
+    "password_hash": "q3Mgkbr-JMaYcKcsmko_Uu2ufoppvfm69bE775-nv-0"
+  }
+]
