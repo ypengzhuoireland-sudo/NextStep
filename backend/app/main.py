@@ -2,6 +2,8 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import RedirectResponse
 
+from app.api.dashboard import router as dashboard_router
+from app.api.exercises import router as exercises_router
 from app.api.sessions import router as sessions_router
 
 app = FastAPI()
@@ -20,6 +22,8 @@ app.add_middleware(
 )
 
 app.include_router(sessions_router)
+app.include_router(dashboard_router, prefix="/api", tags=["dashboard"])
+app.include_router(exercises_router, prefix="/api", tags=["exercises"])
 
 
 @app.get("/")
