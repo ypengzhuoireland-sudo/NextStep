@@ -5,7 +5,7 @@ from app.db.base import Base
 from app.db.session import SessionLocal, engine
 from app.models.user import User
 
-USERS_PATH = Path(__file__).resolve().parents[2] / "data" / "users.json"
+USERS_PATH = Path(__file__).resolve().parents[2] / "seeds" / "users_seed.json"
 
 
 def init_db() -> None:
