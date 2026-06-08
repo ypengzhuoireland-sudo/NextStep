@@ -1,0 +1,293 @@
+{
+  "schema_version": "1.0",
+  "exam_id": "P09-EXAM-001",
+  "title": "Introductory Python Programming Exam",
+  "project": "P09 Adaptive AI Tutor for Programming Concepts",
+  "language": "python",
+  "duration_minutes": 120,
+  "total_points": 100,
+  "question_count": 12,
+  "instructions": [
+    "Write Python code for each function or class exactly as named.",
+    "Return values from functions instead of printing them unless the prompt explicitly says otherwise.",
+    "Visible test cases are examples; hidden tests may check additional edge cases."
+  ],
+  "questions": [
+    {
+      "question_id": "Q001",
+      "type": "coding",
+      "title": "Weighted Score",
+      "difficulty": "easy",
+      "points": 6,
+      "estimated_minutes": 8,
+      "kc_tags": ["KC001", "KC004"],
+      "prompt": "Write a function weighted_score(coursework, exam) that returns the final score. Coursework is worth 40% and exam is worth 60%.",
+      "function_name": "weighted_score",
+      "starter_code": "def weighted_score(coursework, exam):\n    pass\n",
+      "test_cases": [
+        {"input": {"coursework": 80, "exam": 90}, "expected_output": 86.0},
+        {"input": {"coursework": 100, "exam": 50}, "expected_output": 70.0},
+        {"input": {"coursework": 0, "exam": 100}, "expected_output": 60.0}
+      ],
+      "hidden_tests": true,
+      "hints": [
+        "Multiply each score by its weight.",
+        "Add the two weighted values and return the result."
+      ],
+      "solution": "def weighted_score(coursework, exam):\n    return coursework * 0.4 + exam * 0.6\n"
+    },
+    {
+      "question_id": "Q002",
+      "type": "coding",
+      "title": "Ticket Price",
+      "difficulty": "easy",
+      "points": 6,
+      "estimated_minutes": 9,
+      "kc_tags": ["KC002", "KC004"],
+      "prompt": "Write a function ticket_price(age) that returns 0 for ages under 5, 8 for ages 5 to 17, 12 for ages 18 to 64, and 6 for ages 65 or older.",
+      "function_name": "ticket_price",
+      "starter_code": "def ticket_price(age):\n    pass\n",
+      "test_cases": [
+        {"input": {"age": 4}, "expected_output": 0},
+        {"input": {"age": 17}, "expected_output": 8},
+        {"input": {"age": 70}, "expected_output": 6}
+      ],
+      "hidden_tests": true,
+      "hints": [
+        "Check the smallest age range first.",
+        "Use if and elif to separate the ranges."
+      ],
+      "solution": "def ticket_price(age):\n    if age < 5:\n        return 0\n    if age <= 17:\n        return 8\n    if age <= 64:\n        return 12\n    return 6\n"
+    },
+    {
+      "question_id": "Q003",
+      "type": "coding",
+      "title": "Count Short Words",
+      "difficulty": "easy",
+      "points": 6,
+      "estimated_minutes": 10,
+      "kc_tags": ["KC003", "KC005", "KC006"],
+      "prompt": "Write a function count_short_words(words, max_length) that returns how many strings in words have length less than or equal to max_length.",
+      "function_name": "count_short_words",
+      "starter_code": "def count_short_words(words, max_length):\n    pass\n",
+      "test_cases": [
+        {"input": {"words": ["cat", "elephant", "dog"], "max_length": 3}, "expected_output": 2},
+        {"input": {"words": ["ai", "data", "python"], "max_length": 4}, "expected_output": 2},
+        {"input": {"words": [], "max_length": 5}, "expected_output": 0}
+      ],
+      "hidden_tests": true,
+      "hints": [
+        "Start a counter at 0.",
+        "Loop through the list and compare len(word) with max_length."
+      ],
+      "solution": "def count_short_words(words, max_length):\n    count = 0\n    for word in words:\n        if len(word) <= max_length:\n            count += 1\n    return count\n"
+    },
+    {
+      "question_id": "Q004",
+      "type": "coding",
+      "title": "Clean Username",
+      "difficulty": "easy",
+      "points": 6,
+      "estimated_minutes": 8,
+      "kc_tags": ["KC005", "KC004"],
+      "prompt": "Write a function clean_username(username) that removes leading and trailing spaces and returns the username in lowercase.",
+      "function_name": "clean_username",
+      "starter_code": "def clean_username(username):\n    pass\n",
+      "test_cases": [
+        {"input": {"username": "  Student01 "}, "expected_output": "student01"},
+        {"input": {"username": "ADMIN"}, "expected_output": "admin"},
+        {"input": {"username": " mia "}, "expected_output": "mia"}
+      ],
+      "hidden_tests": true,
+      "hints": [
+        "Use strip() to remove outside spaces.",
+        "Use lower() to make the text lowercase."
+      ],
+      "solution": "def clean_username(username):\n    return username.strip().lower()\n"
+    },
+    {
+      "question_id": "Q005",
+      "type": "coding",
+      "title": "Numbers Divisible By",
+      "difficulty": "medium",
+      "points": 8,
+      "estimated_minutes": 12,
+      "kc_tags": ["KC003", "KC006"],
+      "prompt": "Write a function divisible_by(numbers, divisor) that returns a new list containing only the numbers divisible by divisor. Assume divisor is not 0.",
+      "function_name": "divisible_by",
+      "starter_code": "def divisible_by(numbers, divisor):\n    pass\n",
+      "test_cases": [
+        {"input": {"numbers": [3, 4, 6, 8, 9], "divisor": 3}, "expected_output": [3, 6, 9]},
+        {"input": {"numbers": [10, 15, 20], "divisor": 5}, "expected_output": [10, 15, 20]},
+        {"input": {"numbers": [1, 2, 3], "divisor": 7}, "expected_output": []}
+      ],
+      "hidden_tests": true,
+      "hints": [
+        "Use the modulo operator.",
+        "Append a number when number % divisor equals 0."
+      ],
+      "solution": "def divisible_by(numbers, divisor):\n    result = []\n    for number in numbers:\n        if number % divisor == 0:\n            result.append(number)\n    return result\n"
+    },
+    {
+      "question_id": "Q006",
+      "type": "coding",
+      "title": "Password Strength",
+      "difficulty": "medium",
+      "points": 8,
+      "estimated_minutes": 14,
+      "kc_tags": ["KC002", "KC003", "KC005"],
+      "prompt": "Write a function password_strength(password) that returns 'weak' if the password has fewer than 8 characters, 'medium' if it has at least 8 characters but no digit, and 'strong' if it has at least 8 characters and at least one digit.",
+      "function_name": "password_strength",
+      "starter_code": "def password_strength(password):\n    pass\n",
+      "test_cases": [
+        {"input": {"password": "abc"}, "expected_output": "weak"},
+        {"input": {"password": "abcdefgh"}, "expected_output": "medium"},
+        {"input": {"password": "abc12345"}, "expected_output": "strong"}
+      ],
+      "hidden_tests": true,
+      "hints": [
+        "Check the length first.",
+        "Use a loop or any() to check whether a character is a digit."
+      ],
+      "solution": "def password_strength(password):\n    if len(password) < 8:\n        return \"weak\"\n    has_digit = False\n    for char in password:\n        if char.isdigit():\n            has_digit = True\n            break\n    if has_digit:\n        return \"strong\"\n    return \"medium\"\n"
+    },
+    {
+      "question_id": "Q007",
+      "type": "coding",
+      "title": "Top Student",
+      "difficulty": "medium",
+      "points": 8,
+      "estimated_minutes": 14,
+      "kc_tags": ["KC006", "KC007", "KC008"],
+      "prompt": "Write a function top_student(records) where records is a list of dictionaries with 'name' and 'score'. Return the name of the student with the highest score. If records is empty, return None. If there is a tie, return the first matching student.",
+      "function_name": "top_student",
+      "starter_code": "def top_student(records):\n    pass\n",
+      "test_cases": [
+        {"input": {"records": [{"name": "Ana", "score": 82}, {"name": "Bo", "score": 91}]}, "expected_output": "Bo"},
+        {"input": {"records": [{"name": "Mia", "score": 90}, {"name": "Lee", "score": 90}]}, "expected_output": "Mia"},
+        {"input": {"records": []}, "expected_output": null}
+      ],
+      "hidden_tests": true,
+      "hints": [
+        "Handle the empty list first.",
+        "Track the current best record while looping."
+      ],
+      "solution": "def top_student(records):\n    if not records:\n        return None\n    best = records[0]\n    for record in records[1:]:\n        if record[\"score\"] > best[\"score\"]:\n            best = record\n    return best[\"name\"]\n"
+    },
+    {
+      "question_id": "Q008",
+      "type": "coding",
+      "title": "Character Frequency",
+      "difficulty": "medium",
+      "points": 8,
+      "estimated_minutes": 12,
+      "kc_tags": ["KC005", "KC007"],
+      "prompt": "Write a function char_frequency(text) that returns a dictionary counting each non-space character in lowercase.",
+      "function_name": "char_frequency",
+      "starter_code": "def char_frequency(text):\n    pass\n",
+      "test_cases": [
+        {"input": {"text": "A ba"}, "expected_output": {"a": 2, "b": 1}},
+        {"input": {"text": "Hi!"}, "expected_output": {"h": 1, "i": 1, "!": 1}},
+        {"input": {"text": "   "}, "expected_output": {}}
+      ],
+      "hidden_tests": true,
+      "hints": [
+        "Convert the text to lowercase.",
+        "Skip characters equal to a space."
+      ],
+      "solution": "def char_frequency(text):\n    counts = {}\n    for char in text.lower():\n        if char == \" \":\n            continue\n        counts[char] = counts.get(char, 0) + 1\n    return counts\n"
+    },
+    {
+      "question_id": "Q009",
+      "type": "coding",
+      "title": "Matrix Diagonal Sum",
+      "difficulty": "medium",
+      "points": 8,
+      "estimated_minutes": 14,
+      "kc_tags": ["KC006", "KC008"],
+      "prompt": "Write a function diagonal_sum(matrix) that returns the sum of the main diagonal of a square matrix.",
+      "function_name": "diagonal_sum",
+      "starter_code": "def diagonal_sum(matrix):\n    pass\n",
+      "test_cases": [
+        {"input": {"matrix": [[1, 2], [3, 4]]}, "expected_output": 5},
+        {"input": {"matrix": [[5, 0, 0], [1, 6, 1], [2, 2, 7]]}, "expected_output": 18},
+        {"input": {"matrix": []}, "expected_output": 0}
+      ],
+      "hidden_tests": true,
+      "hints": [
+        "The diagonal uses positions [0][0], [1][1], [2][2], and so on.",
+        "Loop over the row index."
+      ],
+      "solution": "def diagonal_sum(matrix):\n    total = 0\n    for index in range(len(matrix)):\n        total += matrix[index][index]\n    return total\n"
+    },
+    {
+      "question_id": "Q010",
+      "type": "coding",
+      "title": "Course Gradebook",
+      "difficulty": "medium",
+      "points": 8,
+      "estimated_minutes": 16,
+      "kc_tags": ["KC010", "KC006"],
+      "prompt": "Create a Gradebook class. It should store scores in a list. Add add_score(score), average(), and highest() methods. average() should return None if there are no scores. highest() should return None if there are no scores.",
+      "function_name": "Gradebook",
+      "starter_code": "class Gradebook:\n    pass\n",
+      "test_cases": [
+        {"input": {"operations": [["create"], ["add_score", 80], ["add_score", 100], ["average"]]}, "expected_output": 90.0},
+        {"input": {"operations": [["create"], ["add_score", 75], ["highest"]]}, "expected_output": 75},
+        {"input": {"operations": [["create"], ["average"]]}, "expected_output": null}
+      ],
+      "hidden_tests": true,
+      "hints": [
+        "Initialize self.scores as an empty list in __init__.",
+        "Use sum and len for average, and max for highest."
+      ],
+      "solution": "class Gradebook:\n    def __init__(self):\n        self.scores = []\n\n    def add_score(self, score):\n        self.scores.append(score)\n\n    def average(self):\n        if not self.scores:\n            return None\n        return sum(self.scores) / len(self.scores)\n\n    def highest(self):\n        if not self.scores:\n            return None\n        return max(self.scores)\n"
+    },
+    {
+      "question_id": "Q011",
+      "type": "coding",
+      "title": "Balanced Parentheses",
+      "difficulty": "hard",
+      "points": 14,
+      "estimated_minutes": 22,
+      "kc_tags": ["KC003", "KC005", "KC006", "KC012"],
+      "prompt": "Write a function is_balanced_parentheses(text) that returns True if every opening parenthesis '(' is closed by a later ')' in the correct order. Ignore all non-parenthesis characters.",
+      "function_name": "is_balanced_parentheses",
+      "starter_code": "def is_balanced_parentheses(text):\n    pass\n",
+      "test_cases": [
+        {"input": {"text": "(a + b) * (c + d)"}, "expected_output": true},
+        {"input": {"text": "(()())"}, "expected_output": true},
+        {"input": {"text": "())("}, "expected_output": false}
+      ],
+      "hidden_tests": true,
+      "hints": [
+        "You can use a counter instead of a full stack because there is only one bracket type.",
+        "The counter should never become negative."
+      ],
+      "solution": "def is_balanced_parentheses(text):\n    balance = 0\n    for char in text:\n        if char == \"(\":\n            balance += 1\n        elif char == \")\":\n            balance -= 1\n            if balance < 0:\n                return False\n    return balance == 0\n"
+    },
+    {
+      "question_id": "Q012",
+      "type": "coding",
+      "title": "Recommend Weakest Exercise",
+      "difficulty": "hard",
+      "points": 14,
+      "estimated_minutes": 25,
+      "kc_tags": ["KC007", "KC008", "KC012"],
+      "prompt": "Write a function recommend_weakest_exercise(mastery, exercises) that returns the id of the first exercise targeting the student's weakest KC. mastery maps KC ids to scores from 0 to 1. exercises is a list of dictionaries with 'id' and 'kc_tags'. If mastery or exercises is empty, return None. If multiple KCs have the same lowest mastery, use the one that appears first when iterating through mastery.",
+      "function_name": "recommend_weakest_exercise",
+      "starter_code": "def recommend_weakest_exercise(mastery, exercises):\n    pass\n",
+      "test_cases": [
+        {"input": {"mastery": {"KC001": 0.8, "KC002": 0.3, "KC003": 0.6}, "exercises": [{"id": "E1", "kc_tags": ["KC001"]}, {"id": "E2", "kc_tags": ["KC002"]}]}, "expected_output": "E2"},
+        {"input": {"mastery": {"KC004": 0.2, "KC005": 0.2}, "exercises": [{"id": "E3", "kc_tags": ["KC005"]}, {"id": "E4", "kc_tags": ["KC004"]}]}, "expected_output": "E4"},
+        {"input": {"mastery": {}, "exercises": [{"id": "E1", "kc_tags": ["KC001"]}]}, "expected_output": null}
+      ],
+      "hidden_tests": true,
+      "hints": [
+        "Find the weakest KC by looping through mastery in insertion order.",
+        "Then return the first exercise whose kc_tags contains that KC."
+      ],
+      "solution": "def recommend_weakest_exercise(mastery, exercises):\n    if not mastery or not exercises:\n        return None\n    weakest_kc = None\n    weakest_score = None\n    for kc_id, score in mastery.items():\n        if weakest_score is None or score < weakest_score:\n            weakest_kc = kc_id\n            weakest_score = score\n    for exercise in exercises:\n        if weakest_kc in exercise[\"kc_tags\"]:\n            return exercise[\"id\"]\n    return None\n"
+    }
+  ]
+}
