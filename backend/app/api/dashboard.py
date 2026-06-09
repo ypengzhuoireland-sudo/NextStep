@@ -1,13 +1,13 @@
 from typing import NoReturn
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.orm import Session
 
 from app.db.session import get_db
-from app.schemas.dashboard import DashboardResponse
+from app.schemas.dashboard import ClassDashboardSummary, DashboardResponse
 from app.schemas.sessions import UserProfile
-from app.services.dashboard_service import build_dashboard_response
+from app.services.dashboard_service import build_class_dashboard_summary, build_dashboard_response
 from app.services.session_service import get_user_from_access_token
 
 
@@ -15,8 +15,16 @@ router = APIRouter()
 bearer_scheme = HTTPBearer(auto_error=False)
 
 
-# Handle the dashboard API request for the currently logged-in user.
-@router.get("/dashboard", response_model=DashboardResponse)
+@router.get("/dashboard/class-summary", response_model=ClassDashboardSummary)
+def class_dashboard_summary(
+    class_id: str = Query(default="demo-python-101"),
+    db: Session = Depends(get_db),
+) -> ClassDashboardSummary:
+    return build_class_dashboard_summary(db, class_id)
+
+
+# Handle the student dashboard API request for the currently logged-in user.
+@router.get("/dashboard/student", response_model=DashboardResponse)
 def dashboard(
     auth_credentials: HTTPAuthorizationCredentials | None = Depends(bearer_scheme),
     db: Session = Depends(get_db),
