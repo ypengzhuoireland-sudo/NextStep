@@ -1,23 +1,51 @@
 from pydantic import BaseModel
 
 
-# Represent one expected input/output pair for an exercise.
-class TestCase(BaseModel):
-    input: str
-    expected_output: str
-
-
-# Represent one exercise row in exercise lists and dashboard queues.
-class ExerciseSummary(BaseModel):
+class ExerciseListItem(BaseModel):
     id: str
     title: str
-    kc: str
     difficulty: str
+    primaryKc: str
+    estimatedMinutes: int
     status: str
 
 
-# Represent the full exercise payload needed by the practice page.
-class ExerciseDetail(ExerciseSummary):
+class ExerciseListResponse(BaseModel):
+    items: list[ExerciseListItem]
+    total: int
+
+
+class KnowledgeComponentTag(BaseModel):
+    code: str
+    name: str
     description: str
-    starter_code: str
-    test_cases: list[TestCase]
+    mastery: float
+    trend: float
+    state: str
+
+
+class ExerciseExample(BaseModel):
+    input: str
+    output: str
+    explanation: str
+
+
+class ExerciseRecommendation(BaseModel):
+    strategy: str
+    reason: str
+    confidence: float
+
+
+class ExerciseDetail(BaseModel):
+    id: str
+    title: str
+    slug: str
+    difficulty: str
+    estimatedMinutes: int
+    prompt: str
+    goal: str
+    constraints: list[str]
+    examples: list[ExerciseExample]
+    starterCode: str
+    kcTags: list[KnowledgeComponentTag]
+    recommendation: ExerciseRecommendation

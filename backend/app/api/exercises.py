@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
 from app.db.session import get_db
-from app.schemas.exercises import ExerciseDetail, ExerciseSummary
+from app.schemas.exercises import ExerciseDetail, ExerciseListResponse
 from app.services.exercise_service import get_exercise_by_id, list_exercises
 
 
@@ -10,13 +10,14 @@ router = APIRouter()
 
 
 # Return exercise summaries, optionally filtered by KC or difficulty.
-@router.get("/exercises", response_model=list[ExerciseSummary])
+@router.get("/exercises", response_model=ExerciseListResponse)
 def get_exercises(
     kc: str | None = Query(default=None),
     difficulty: str | None = Query(default=None),
+    status: str | None = Query(default=None),
     db: Session = Depends(get_db),
-) -> list[ExerciseSummary]:
-    return list_exercises(db, kc=kc, difficulty=difficulty)
+) -> ExerciseListResponse:
+    return list_exercises(db, kc=kc, difficulty=difficulty, status=status)
 
 
 # Return full details for one exercise so the practice page can render it.
