@@ -7,6 +7,7 @@ from app.api.executions import router as executions_router
 from app.api.exercises import router as exercises_router
 from app.api.kcs import router as kcs_router
 from app.api.mastery import router as mastery_router
+from app.api.practice import router as practice_router
 from app.api.sessions import router as sessions_router
 from app.api.submissions import router as submissions_router
 
@@ -31,6 +32,7 @@ app.include_router(executions_router, prefix="/api", tags=["executions"])
 app.include_router(exercises_router, prefix="/api", tags=["exercises"])
 app.include_router(kcs_router, prefix="/api", tags=["kcs"])
 app.include_router(mastery_router, prefix="/api", tags=["mastery"])
+app.include_router(practice_router, prefix="/api", tags=["practice"])
 app.include_router(submissions_router, prefix="/api", tags=["submissions"])
 
 

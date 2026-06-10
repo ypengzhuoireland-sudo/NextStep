@@ -19,6 +19,8 @@ from app.schemas.dashboard import (
     WeakKcSummary,
 )
 from app.schemas.sessions import UserProfile
+from app.services.exercise_service import to_frontend_status
+from app.services.mastery_service import mastery_state
 from app.services.recommendation_service import choose_recommended_exercise
 
 
@@ -28,15 +30,28 @@ def build_dashboard_response(db: Session, current_user: UserProfile) -> Dashboar
     exercises = list_dashboard_exercises(db)
     mastery_average = round(sum(kc.mastery for kc in kcs) / len(kcs), 2) if kcs else 0.0
     recommended = choose_recommended_exercise(exercises)
+    recommended_exercise_id = recommended.id if recommended is not None else ""
+    active_goal = "Practice weak Python concepts"
+    backend_status = "connected"
+    learning_path = sorted(kcs, key=lambda kc: kc.mastery)[:5]
 
     return DashboardResponse(
         student_name=current_user.name,
-        active_goal="Practice weak Python concepts",
-        backend_status="connected",
+        active_goal=active_goal,
+        backend_status=backend_status,
         mastery_average=mastery_average,
-        recommended_exercise_id=recommended.id,
+        recommended_exercise_id=recommended_exercise_id,
         knowledge_components=kcs,
         exercises=exercises,
+        studentId=current_user.student_id,
+        studentName=current_user.name,
+        activeGoal=active_goal,
+        backendStatus=backend_status,
+        masteryAverage=mastery_average,
+        recommendedExerciseId=recommended_exercise_id,
+        recommendedExercise=recommended,
+        masteryProfile=kcs,
+        learningPath=learning_path,
     )
 
 
@@ -46,6 +61,7 @@ def list_dashboard_mastery(db: Session, student_id: str) -> list[KnowledgeCompon
         select(
             KnowledgeComponentModel.id,
             KnowledgeComponentModel.name,
+            KnowledgeComponentModel.description,
             StudentMastery.mastery,
         )
         .join(StudentMastery, StudentMastery.kc_id == KnowledgeComponentModel.id)
@@ -56,8 +72,12 @@ def list_dashboard_mastery(db: Session, student_id: str) -> list[KnowledgeCompon
     return [
         KnowledgeComponent(
             id=row.id,
+            code=row.id,
             name=row.name,
+            description=row.description or "",
             mastery=row.mastery,
+            trend=0.0,
+            state=mastery_state(row.mastery),
         )
         for row in rows
     ]
@@ -72,8 +92,10 @@ def list_dashboard_exercises(db: Session) -> list[Exercise]:
             id=exercise.id,
             title=exercise.title,
             kc=exercise.kc_id,
+            primaryKc=exercise.kc_id,
             difficulty=exercise.difficulty,
-            status=exercise.status,
+            estimatedMinutes=exercise.estimated_minutes,
+            status=to_frontend_status(exercise.status),
         )
         for exercise in exercises
     ]
@@ -94,10 +116,10 @@ def build_class_dashboard_summary(db: Session, class_id: str) -> ClassDashboardS
 
     heatmap = [
         ClassHeatmapCell(
-            studentId=user.student_id,
-            displayName=user.name,
-            kcCode=kc.id,
-            kcName=kc.name,
+            student_id=user.student_id,
+            display_name=user.name,
+            kc_code=kc.id,
+            kc_name=kc.name,
             mastery=mastery_by_student_kc.get((user.student_id, kc.id), 0.0),
         )
         for user in users
@@ -114,20 +136,22 @@ def build_class_dashboard_summary(db: Session, class_id: str) -> ClassDashboardS
     weak_kcs = build_weak_kcs(users, kcs, mastery_by_student_kc)
     average_mastery = average(cell.mastery for cell in heatmap)
 
+    updated_at = datetime.now(timezone.utc).isoformat()
+
     return ClassDashboardSummary(
-        classId=class_id,
-        updatedAt=datetime.now(timezone.utc).isoformat(),
+        class_id=class_id,
+        updated_at=updated_at,
         totals=DashboardTotals(
             students=len(users),
-            averageMastery=round(average_mastery, 2),
-            submissions7d=0,
-            hintRequests7d=0,
-            atRiskCount=len(risk_students),
+            average_mastery=round(average_mastery, 2),
+            submissions_7d=0,
+            hint_requests_7d=0,
+            at_risk_count=len(risk_students),
         ),
         heatmap=heatmap,
-        riskStudents=risk_students,
-        weakKcs=weak_kcs,
-        recentSubmissions=[],
+        risk_students=risk_students,
+        weak_kcs=weak_kcs,
+        recent_submissions=[],
     )
 
 
@@ -153,17 +177,17 @@ def build_risk_students(
 
         risk_students.append(
             RiskStudent(
-                studentId=user.student_id,
-                displayName=user.name,
-                averageMastery=round(average_mastery, 2),
-                failedAttempts7d=0,
-                hintsUsed7d=0,
-                weakestKc=weakest_kc.name if weakest_kc is not None else "No KC data",
-                lastActiveAt="No recent activity",
+                student_id=user.student_id,
+                display_name=user.name,
+                average_mastery=round(average_mastery, 2),
+                failed_attempts_7d=0,
+                hints_used_7d=0,
+                weakest_kc=weakest_kc.name if weakest_kc is not None else "No KC data",
+                last_active_at="No recent activity",
             )
         )
 
-    return sorted(risk_students, key=lambda student: student.averageMastery)
+    return sorted(risk_students, key=lambda student: student.average_mastery)
 
 
 def build_weak_kcs(
@@ -173,13 +197,13 @@ def build_weak_kcs(
 ) -> list[WeakKcSummary]:
     weak_kcs = [
         WeakKcSummary(
-            kcCode=kc.id,
-            kcName=kc.name,
-            averageMastery=round(
+            kc_code=kc.id,
+            kc_name=kc.name,
+            average_mastery=round(
                 average(mastery_by_student_kc.get((user.student_id, kc.id), 0.0) for user in users),
                 2,
             ),
-            affectedStudents=sum(
+            affected_students=sum(
                 1
                 for user in users
                 if mastery_by_student_kc.get((user.student_id, kc.id), 0.0) < 0.6
@@ -189,7 +213,7 @@ def build_weak_kcs(
         for kc in kcs
     ]
 
-    return sorted(weak_kcs, key=lambda kc: kc.averageMastery)
+    return sorted(weak_kcs, key=lambda kc: kc.average_mastery)
 
 
 def average(values: Iterable[float]) -> float:

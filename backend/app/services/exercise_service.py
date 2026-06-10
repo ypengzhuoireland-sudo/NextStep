@@ -51,13 +51,17 @@ def list_exercises(
     return ExerciseListResponse(items=items, total=len(items))
 
 
-def get_exercise_by_id(db: Session, exercise_id: str) -> ExerciseDetail | None:
+def get_exercise_by_id(
+    db: Session,
+    exercise_id: str,
+    student_id: str = DEFAULT_STUDENT_ID,
+) -> ExerciseDetail | None:
     exercise = db.get(ExerciseModel, exercise_id)
 
     if exercise is None:
         return None
 
-    kc_tags = list_knowledge_component_tags(db, exercise.id)
+    kc_tags = list_knowledge_component_tags(db, exercise.id, student_id)
 
     return ExerciseDetail(
         id=exercise.id,
@@ -86,14 +90,18 @@ def to_exercise_list_item(exercise: ExerciseModel) -> ExerciseListItem:
     )
 
 
-def list_knowledge_component_tags(db: Session, exercise_id: str) -> list[KnowledgeComponentTag]:
+def list_knowledge_component_tags(
+    db: Session,
+    exercise_id: str,
+    student_id: str = DEFAULT_STUDENT_ID,
+) -> list[KnowledgeComponentTag]:
     statement = (
         select(KnowledgeComponent, StudentMastery.mastery)
         .join(ExerciseKnowledgeComponent, ExerciseKnowledgeComponent.kc_id == KnowledgeComponent.id)
         .outerjoin(
             StudentMastery,
             (StudentMastery.kc_id == KnowledgeComponent.id)
-            & (StudentMastery.student_id == DEFAULT_STUDENT_ID),
+            & (StudentMastery.student_id == student_id),
         )
         .where(ExerciseKnowledgeComponent.exercise_id == exercise_id)
         .order_by(KnowledgeComponent.id)
