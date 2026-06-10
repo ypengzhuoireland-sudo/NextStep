@@ -3,10 +3,12 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import RedirectResponse
 
 from app.api.dashboard import router as dashboard_router
+from app.api.executions import router as executions_router
 from app.api.exercises import router as exercises_router
 from app.api.kcs import router as kcs_router
 from app.api.mastery import router as mastery_router
 from app.api.sessions import router as sessions_router
+from app.api.submissions import router as submissions_router
 
 app = FastAPI()
 
@@ -25,9 +27,11 @@ app.add_middleware(
 
 app.include_router(sessions_router)
 app.include_router(dashboard_router, prefix="/api", tags=["dashboard"])
+app.include_router(executions_router, prefix="/api", tags=["executions"])
 app.include_router(exercises_router, prefix="/api", tags=["exercises"])
 app.include_router(kcs_router, prefix="/api", tags=["kcs"])
 app.include_router(mastery_router, prefix="/api", tags=["mastery"])
+app.include_router(submissions_router, prefix="/api", tags=["submissions"])
 
 
 @app.get("/")
