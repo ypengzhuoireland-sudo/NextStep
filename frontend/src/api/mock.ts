@@ -37,82 +37,89 @@ export function getMockDashboard(): ClassDashboardSummary {
 
 export function getMockSubmissionResult(code: string, mode: "run" | "submit"): SubmissionResult {
   const hasAppend = code.includes(".append(");
-  const checks60 = code.includes(">= 60") || code.includes(">=60");
-  const passed = mode === "run" ? checks60 : hasAppend && checks60;
+  const hasThreshold = code.includes(">= 60") || code.includes(">=60");
+  const passed = mode === "run" ? hasThreshold : hasAppend && hasThreshold;
 
   return cloneMock(passed ? mockPassedSubmission : mockFailedSubmission);
 }
 
-export function getMockRecommendation(opts: {
+export function getMockRecommendation(params: {
   currentExerciseId?: string;
   experimentGroup?: ExperimentGroup;
   masteryProfile?: KnowledgeComponent[];
 }): RecommendationResponse {
-  const profile = opts.masteryProfile?.length ? opts.masteryProfile : mockSession.masteryProfile;
-  const group = opts.experimentGroup ?? mockSession.experimentGroup;
-  const pool = getMockExercises();
-  const currentId = opts.currentExerciseId ?? mockSession.exercise.id;
+  const masteryProfile = params.masteryProfile?.length ? params.masteryProfile : mockSession.masteryProfile;
+  const experimentGroup = params.experimentGroup ?? mockSession.experimentGroup;
+  const catalog = getMockExercises();
+  const currentExerciseId = params.currentExerciseId ?? mockSession.exercise.id;
 
-  if (group === "fixed") {
-    const ex = pool.find((item) => item.id !== currentId) ?? pool[0];
-    return packRec(ex, {
+  if (experimentGroup === "fixed") {
+    return buildRecommendation(catalog, currentExerciseId, {
       strategy: "fixed_ordering_baseline",
       reason: "Fixed baseline selected the next published exercise in the planned sequence.",
       confidence: 0.72
     });
   }
 
-  if (group === "random") {
-    const candidates = pool.filter((exercise) => exercise.id !== currentId);
-    const maybe = candidates[Math.floor(Date.now() % Math.max(candidates.length, 1))] ?? pool[0];
-    return packRec(maybe, {
+  if (experimentGroup === "random") {
+    const available = catalog.filter((exercise) => exercise.id !== currentExerciseId);
+    const randomExercise = available[Math.floor(Date.now() % Math.max(available.length, 1))] ?? catalog[0];
+    return withRecommendation(randomExercise, {
       strategy: "random_baseline",
       reason: "Random baseline selected this exercise without using mastery state.",
       confidence: 0.58
     });
   }
 
-  // good enough for demo until backend recommendation logs are wired in
-  const weakKcs = [...profile].sort((a, b) => a.mastery - b.mastery);
+  const weakKcs = [...masteryProfile].sort((a, b) => a.mastery - b.mastery);
 
-  for (const kc of weakKcs) {
-    const matched = pool.find(
+  for (const weakKc of weakKcs) {
+    const matched = catalog.find(
       (exercise) =>
-        exercise.id !== currentId &&
-        exercise.kcTags.some((tag) => tag.code === kc.code)
+        exercise.id !== currentExerciseId &&
+        exercise.kcTags.some((kc) => kc.code === weakKc.code)
     );
 
     if (matched) {
-      return packRec(matched, {
+      return withRecommendation(matched, {
         strategy: "lowest_mastery_with_difficulty_match",
-        reason: `${kc.name} mastery is ${kc.mastery.toFixed(
+        reason: `${weakKc.name} mastery is ${weakKc.mastery.toFixed(
           2
-        )}, below the 0.75 target. This exercise targets ${kc.code} while staying within the current difficulty band.`,
-        confidence: Math.min(0.94, 0.76 + (0.75 - kc.mastery) * 0.35)
+        )}, below the 0.75 target. This exercise targets ${weakKc.code} while staying within the current difficulty band.`,
+        confidence: Math.min(0.94, 0.76 + (0.75 - weakKc.mastery) * 0.35)
       });
     }
   }
 
-  return packRec(pool.find((item) => item.id !== currentId) ?? pool[0], {
+  return buildRecommendation(catalog, currentExerciseId, {
     strategy: "spiral_review",
     reason: "All tracked KCs are near target, so the tutor selected a mixed review exercise.",
     confidence: 0.74
   });
 }
 
-function packRec(
+function buildRecommendation(
+  catalog: Exercise[],
+  currentExerciseId: string | undefined,
+  recommendation: Omit<RecommendationResponse, "exercise">
+): RecommendationResponse {
+  const exercise = catalog.find((item) => item.id !== currentExerciseId) ?? catalog[0];
+  return withRecommendation(exercise, recommendation);
+}
+
+function withRecommendation(
   exercise: Exercise,
-  rec: Omit<RecommendationResponse, "exercise">
+  recommendation: Omit<RecommendationResponse, "exercise">
 ): RecommendationResponse {
   const nextExercise = cloneMock(exercise);
   nextExercise.recommendation = {
-    strategy: rec.strategy,
-    reason: rec.reason,
-    confidence: rec.confidence
+    strategy: recommendation.strategy,
+    reason: recommendation.reason,
+    confidence: recommendation.confidence
   };
 
   return {
     exercise: nextExercise,
-    ...rec
+    ...recommendation
   };
 }

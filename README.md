@@ -16,4 +16,3 @@ The app is implemented with React, TypeScript, TailwindCSS, shadcn-style local U
 
 - `docs/FRONTEND_DESIGN.md`: page structure and component breakdown.
 - `docs/API.md`: FastAPI contract expected by the frontend.
-# NextStep

@@ -11,11 +11,12 @@ interface NextExerciseButtonProps {
   onNextExercise: () => void;
 }
 
-export function NextExerciseButton(props: NextExerciseButtonProps) {
-  const { exercise, isLoading, onNextExercise } = props;
-  const blocked = props.disabled || isLoading;
-  const pct = Math.round(exercise.recommendation.confidence * 100);
-
+export function NextExerciseButton({
+  exercise,
+  isLoading,
+  disabled = false,
+  onNextExercise
+}: NextExerciseButtonProps) {
   return (
     <Card>
       <CardHeader className="border-b border-white/10">
@@ -25,7 +26,7 @@ export function NextExerciseButton(props: NextExerciseButtonProps) {
         </CardTitle>
         <Badge variant="violet">
           <Sparkles className="h-3.5 w-3.5" />
-          {pct}%
+          {Math.round(exercise.recommendation.confidence * 100)}%
         </Badge>
       </CardHeader>
 
@@ -35,8 +36,7 @@ export function NextExerciseButton(props: NextExerciseButtonProps) {
           <span className="min-w-0 truncate text-xs text-slate-500">
             {exercise.recommendation.strategy}
           </span>
-          {/* TODO: rename once backend has a real recommendation label */}
-          <Button onClick={onNextExercise} disabled={blocked}>
+          <Button onClick={onNextExercise} disabled={disabled || isLoading}>
             {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <MoveRight className="h-4 w-4" />}
             Get Next
           </Button>

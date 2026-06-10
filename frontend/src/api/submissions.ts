@@ -16,45 +16,33 @@ interface SubmissionApiResponse {
 }
 
 export async function runCode(codeOrRequest: string | CodeExecutionRequest): Promise<SubmissionResult> {
-  const req = normalizeCodeRequest(codeOrRequest);
+  const request = normalizeCodeRequest(codeOrRequest);
 
   if (USE_MOCK_API) {
     await wait(850);
-    return getMockSubmissionResult(req.code, "run");
+    return getMockSubmissionResult(request.code, "run");
   }
 
   return apiRequest<SubmissionResult>("/executions/run", {
     method: "POST",
-    body: JSON.stringify({
-      session_id: req.sessionId,
-      student_id: req.studentId,
-      exercise_id: req.exerciseId,
-      language: req.language ?? "python",
-      code: req.code
-    })
+    body: JSON.stringify(toServerPayload(request))
   });
 }
 
 export async function submitCode(codeOrRequest: string | CodeExecutionRequest): Promise<SubmissionResult> {
-  const req = normalizeCodeRequest(codeOrRequest);
+  const request = normalizeCodeRequest(codeOrRequest);
 
   if (USE_MOCK_API) {
     await wait(1180);
-    return getMockSubmissionResult(req.code, "submit");
+    return getMockSubmissionResult(request.code, "submit");
   }
 
-  const res = await apiRequest<SubmissionApiResponse>("/submissions", {
+  const response = await apiRequest<SubmissionApiResponse>("/submissions", {
     method: "POST",
-    body: JSON.stringify({
-      session_id: req.sessionId,
-      student_id: req.studentId,
-      exercise_id: req.exerciseId,
-      language: req.language ?? "python",
-      code: req.code
-    })
+    body: JSON.stringify(toServerPayload(request))
   });
 
-  return res.result;
+  return response.result;
 }
 
 function normalizeCodeRequest(codeOrRequest: string | CodeExecutionRequest): CodeExecutionRequest {
@@ -68,5 +56,15 @@ function normalizeCodeRequest(codeOrRequest: string | CodeExecutionRequest): Cod
   return {
     language: "python",
     ...codeOrRequest
+  };
+}
+
+function toServerPayload(request: CodeExecutionRequest) {
+  return {
+    session_id: request.sessionId,
+    student_id: request.studentId,
+    exercise_id: request.exerciseId,
+    language: request.language ?? "python",
+    code: request.code
   };
 }

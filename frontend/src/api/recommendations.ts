@@ -11,25 +11,24 @@ interface NextRecommendationRequest {
 }
 
 export async function getNextRecommendation(
-  payload: NextRecommendationRequest
+  request: NextRecommendationRequest
 ): Promise<RecommendationResponse> {
   if (USE_MOCK_API) {
     await wait(780);
     return getMockRecommendation({
-      currentExerciseId: payload.currentExerciseId,
-      experimentGroup: payload.strategy,
-      masteryProfile: payload.masteryProfile
+      currentExerciseId: request.currentExerciseId,
+      experimentGroup: request.strategy,
+      masteryProfile: request.masteryProfile
     });
   }
 
-  // backend still expects snake_case here
   return apiRequest<RecommendationResponse>("/recommendations/next", {
     method: "POST",
     body: JSON.stringify({
-      session_id: payload.sessionId,
-      student_id: payload.studentId,
-      current_exercise_id: payload.currentExerciseId,
-      strategy: payload.strategy
+      session_id: request.sessionId,
+      student_id: request.studentId,
+      current_exercise_id: request.currentExerciseId,
+      strategy: request.strategy
     })
   });
 }

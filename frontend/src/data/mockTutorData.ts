@@ -246,7 +246,7 @@ export const mockExerciseCatalog: Exercise[] = [
     ],
     starterCode:
       "def count_positive(numbers):\n    count = 0\n    for number in numbers:\n        # TODO: count positive values\n        pass\n    return count\n",
-    kcTags: kcs(["loops", "conditionals", "lists"]),
+    kcTags: getMockKcTags(["loops", "conditionals", "lists"]),
     recommendation: {
       strategy: "lowest_mastery_with_difficulty_match",
       reason:
@@ -284,7 +284,7 @@ export const mockExerciseCatalog: Exercise[] = [
     ],
     starterCode:
       "def top_three(scores):\n    ordered = list(scores)\n    # TODO: sort and keep the first three\n    return ordered\n",
-    kcTags: kcs(["list_operations", "lists", "functions"]),
+    kcTags: getMockKcTags(["list_operations", "lists", "functions"]),
     recommendation: {
       strategy: "lowest_mastery_with_difficulty_match",
       reason:
@@ -317,7 +317,7 @@ export const mockExerciseCatalog: Exercise[] = [
     ],
     starterCode:
       "def word_counts(words):\n    counts = {}\n    for word in words:\n        # TODO: update the dictionary\n        pass\n    return counts\n",
-    kcTags: kcs(["tuples_dicts_sets", "loops", "conditionals"]),
+    kcTags: getMockKcTags(["tuples_dicts_sets", "loops", "conditionals"]),
     recommendation: {
       strategy: "lowest_mastery_with_difficulty_match",
       reason:
@@ -355,7 +355,7 @@ export const mockExerciseCatalog: Exercise[] = [
     ],
     starterCode:
       "def safe_int(text):\n    # TODO: parse text safely\n    return None\n",
-    kcTags: kcs(["exceptions", "types_comparison", "functions"]),
+    kcTags: getMockKcTags(["exceptions", "types_comparison", "functions"]),
     recommendation: {
       strategy: "lowest_mastery_with_difficulty_match",
       reason:
@@ -469,13 +469,11 @@ export const mockClassDashboard: ClassDashboardSummary = {
     atRiskCount: 4
   },
   heatmap: [
-    ...dashRow("stu_python_beginner_01", "Mina Chen", [0.82, 0.76, 0.71, 0.58, 0.46, 0.39, 0.68, 0.64, 0.44, 0.31]),
-    ...dashRow("stu_python_beginner_02", "Owen Patel", [0.74, 0.69, 0.52, 0.48, 0.57, 0.42, 0.62, 0.59, 0.38, 0.35]),
-    ...dashRow("stu_python_beginner_03", "Ava Brooks", [
-      0.88, 0.81, 0.78, 0.73, 0.69, 0.66, 0.72, 0.7, 0.55, 0.46
-    ]),
-    ...dashRow("stu_python_beginner_04", "Leo Gomez", [0.61, 0.58, 0.49, 0.43, 0.41, 0.33, 0.52, 0.48, 0.36, 0.29]),
-    ...dashRow("stu_python_beginner_05", "Nora Smith", [0.79, 0.73, 0.67, 0.62, 0.55, 0.5, 0.71, 0.66, 0.49, 0.4])
+    ...buildClassHeatmap("stu_python_beginner_01", "Mina Chen", [0.82, 0.76, 0.71, 0.58, 0.46, 0.39, 0.68, 0.64, 0.44, 0.31]),
+    ...buildClassHeatmap("stu_python_beginner_02", "Owen Patel", [0.74, 0.69, 0.52, 0.48, 0.57, 0.42, 0.62, 0.59, 0.38, 0.35]),
+    ...buildClassHeatmap("stu_python_beginner_03", "Ava Brooks", [0.88, 0.81, 0.78, 0.73, 0.69, 0.66, 0.72, 0.7, 0.55, 0.46]),
+    ...buildClassHeatmap("stu_python_beginner_04", "Leo Gomez", [0.61, 0.58, 0.49, 0.43, 0.41, 0.33, 0.52, 0.48, 0.36, 0.29]),
+    ...buildClassHeatmap("stu_python_beginner_05", "Nora Smith", [0.79, 0.73, 0.67, 0.62, 0.55, 0.5, 0.71, 0.66, 0.49, 0.4])
   ],
   riskStudents: [
     {
@@ -588,7 +586,7 @@ export const mockClassDashboard: ClassDashboardSummary = {
   ]
 };
 
-function kcs(codes: string[]): KnowledgeComponent[] {
+function getMockKcTags(codes: string[]): KnowledgeComponent[] {
   return codes.map((code) => {
     const kc = mockSession.masteryProfile.find((item) => item.code === code);
     if (!kc) {
@@ -598,7 +596,7 @@ function kcs(codes: string[]): KnowledgeComponent[] {
   });
 }
 
-function dashRow(studentId: string, displayName: string, masteryValues: number[]) {
+function buildClassHeatmap(studentId: string, displayName: string, masteryValues: number[]) {
   return mockSession.masteryProfile.map((kc, index) => ({
     studentId,
     displayName,

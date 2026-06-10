@@ -26,20 +26,20 @@ export function usePracticeSession() {
   const [isRecommending, setIsRecommending] = useState(false);
 
   useEffect(() => {
-    let alive = true;
+    let isMounted = true;
 
     async function load() {
       setLoadState("loading");
       try {
         const data = await getCurrentPracticeSession();
-        if (!alive) {
+        if (!isMounted) {
           return;
         }
         setSession(data);
         setCode(data.exercise.starterCode);
         setLoadState("ready");
       } catch {
-        if (alive) {
+        if (isMounted) {
           setLoadState("error");
         }
       }
@@ -48,41 +48,41 @@ export function usePracticeSession() {
     void load();
 
     return () => {
-      alive = false;
+      isMounted = false;
     };
   }, []);
 
-  const applySubmissionResult = useCallback((result: SubmissionResult) => {
+  const applyResult = useCallback((result: SubmissionResult) => {
     setSession((current) => {
       if (!current) {
         return current;
       }
 
-      const nextProfile = current.masteryProfile.map((kc) => {
-        const hit = result.masteryDelta.find((item) => item.kcCode === kc.code);
-        if (!hit) {
+      const masteryProfile = current.masteryProfile.map((kc) => {
+        const delta = result.masteryDelta.find((item) => item.kcCode === kc.code);
+        if (!delta) {
           return kc;
         }
-        const score = hit.after;
-        const state: MasteryState =
-          score >= 0.75
+        const nextMastery = delta.after;
+        const nextState: MasteryState =
+          nextMastery >= 0.75
             ? "mastered"
-            : score >= 0.6
+            : nextMastery >= 0.6
               ? "almost_there"
               : "needs_practice";
 
         return {
           ...kc,
-          mastery: score,
-          trend: hit.after - hit.before,
-          state
+          mastery: nextMastery,
+          trend: delta.after - delta.before,
+          state: nextState
         };
       });
 
       return {
         ...current,
         latestResult: result,
-        masteryProfile: nextProfile
+        masteryProfile
       };
     });
   }, []);
@@ -100,11 +100,11 @@ export function usePracticeSession() {
         exerciseId: session.exercise.id,
         code
       });
-      applySubmissionResult(result);
+      applyResult(result);
     } finally {
       setIsRunning(false);
     }
-  }, [applySubmissionResult, code, session]);
+  }, [applyResult, code, session]);
 
   const handleSubmit = useCallback(async () => {
     if (!session) {
@@ -119,11 +119,11 @@ export function usePracticeSession() {
         exerciseId: session.exercise.id,
         code
       });
-      applySubmissionResult(result);
+      applyResult(result);
     } finally {
       setIsSubmitting(false);
     }
-  }, [applySubmissionResult, code, session]);
+  }, [applyResult, code, session]);
 
   const handleHint = useCallback(async (level: 1 | 2 | 3) => {
     if (!session) {
@@ -173,7 +173,7 @@ export function usePracticeSession() {
           return current;
         }
 
-        const exercise = {
+        const nextExercise = {
           ...recommendation.exercise,
           recommendation: {
             strategy: recommendation.strategy,
@@ -184,11 +184,10 @@ export function usePracticeSession() {
 
         return {
           ...current,
-          exercise,
+          exercise: nextExercise,
           latestResult: null,
           hintMessages: [],
-          // TODO: keep old hint history somewhere once sessions are persisted
-          learningPath: patchPathForNext(current.learningPath, exercise)
+          learningPath: buildNextLearningPath(current.learningPath, nextExercise)
         };
       });
       setCode(recommendation.exercise.starterCode);
@@ -226,10 +225,20 @@ export function usePracticeSession() {
   };
 }
 
-function patchPathForNext(items: LearningPathItem[], nextExercise: PracticeSession["exercise"]) {
-  const alreadyQueued = items.find((item) => item.title === nextExercise.title);
-  const nextItem: LearningPathItem = {
-    id: alreadyQueued?.id ?? `path-${nextExercise.id}`,
+function buildNextLearningPath(
+  items: LearningPathItem[],
+  nextExercise: PracticeSession["exercise"]
+): LearningPathItem[] {
+  const existingNext = items.find((item) => item.title === nextExercise.title);
+  const completed = items
+    .filter((item) => item.state === "current")
+    .map((item) => ({
+      ...item,
+      state: "done" as const
+    }));
+
+  const current: LearningPathItem = {
+    id: existingNext?.id ?? `path-${nextExercise.id}`,
     title: nextExercise.title,
     kcCode: nextExercise.kcTags[0]?.code ?? "python_basics",
     state: "current",
@@ -237,21 +246,9 @@ function patchPathForNext(items: LearningPathItem[], nextExercise: PracticeSessi
     difficulty: nextExercise.difficulty
   };
 
-  const patched: LearningPathItem[] = [];
-  for (const item of items) {
-    if (item.state === "current") {
-      patched.push({ ...item, state: "done" });
-      continue;
-    }
-    if (item.title !== nextExercise.title) {
-      if (item.state === "locked" || item.state === "done") {
-        patched.push(item);
-      } else {
-        patched.push({ ...item, state: "queued" });
-      }
-    }
-  }
+  const queued = items
+    .filter((item) => item.state !== "current" && item.title !== nextExercise.title)
+    .map((item) => (item.state === "done" ? item : { ...item, state: item.state === "locked" ? item.state : "queued" as const }));
 
-  patched.splice(1, 0, nextItem);
-  return patched.slice(0, 4);
+  return [...completed, current, ...queued].slice(0, 4);
 }

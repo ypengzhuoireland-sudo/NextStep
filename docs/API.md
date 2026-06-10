@@ -1,5 +1,107 @@
 # NextStep API Contract
 
+## 0. Student Auth Mock
+
+The current project is frontend-only. Student login is implemented in
+`frontend/src/api/studentAuth.ts` with browser `localStorage`; no backend or
+database is required.
+
+Local storage keys:
+
+- `nextstep_student_token`
+- `nextstep_student_user`
+- `nextstep_student_accounts` (registered accounts in this frontend mock)
+
+Demo student:
+
+```json
+{
+  "email": "student@nextstep.test",
+  "password": "demo1234"
+}
+```
+
+Frontend API functions:
+
+- `loginStudent({ email, password })`
+- `registerStudent({ name, email, password })`
+- `getStudentMe()`
+- `logoutStudent()`
+
+Future backend contract can keep the same response shape:
+
+### POST /api/auth/student/login
+
+Request:
+
+```json
+{
+  "email": "student@nextstep.test",
+  "password": "demo1234"
+}
+```
+
+Response:
+
+```json
+{
+  "token": "student_stu_python_beginner_01",
+  "user": {
+    "id": "stu_python_beginner_01",
+    "name": "Python Beginner",
+    "email": "student@nextstep.test",
+    "avatarInitials": "PB"
+  }
+}
+```
+
+### POST /api/auth/student/register
+
+Request:
+
+```json
+{
+  "name": "Python Beginner",
+  "email": "student2@nextstep.test",
+  "password": "demo1234"
+}
+```
+
+Response:
+
+```json
+{
+  "token": "student_stu_local_1780000000000",
+  "user": {
+    "id": "stu_local_1780000000000",
+    "name": "Python Beginner",
+    "email": "student2@nextstep.test",
+    "avatarInitials": "PB"
+  }
+}
+```
+
+### GET /api/auth/student/me
+
+Request header:
+
+```txt
+Authorization: Bearer student_stu_python_beginner_01
+```
+
+Response:
+
+```json
+{
+  "user": {
+    "id": "stu_python_beginner_01",
+    "name": "Python Beginner",
+    "email": "student@nextstep.test",
+    "avatarInitials": "PB"
+  }
+}
+```
+
 本文档定义前端需要的 FastAPI REST 接口。当前前端使用 mock 数据实现，后端接入时按以下 JSON 契约返回即可。
 
 ## 基础约定

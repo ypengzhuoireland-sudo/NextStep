@@ -19,7 +19,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import type { ClassDashboardSummary } from "@/types/tutor";
+import type { ClassDashboardSummary, ExecutionStatus } from "@/types/tutor";
 import { formatPercent, heatmapColor } from "@/utils/formatters";
 
 type DashboardLoadState = "idle" | "loading" | "ready" | "error";
@@ -33,19 +33,19 @@ export function DashboardPage({ onOpenPractice }: DashboardPageProps) {
   const [loadState, setLoadState] = useState<DashboardLoadState>("idle");
 
   useEffect(() => {
-    let ok = true;
+    let isMounted = true;
 
     async function load() {
       setLoadState("loading");
       try {
-        const res = await getClassDashboardSummary();
-        if (!ok) {
+        const data = await getClassDashboardSummary();
+        if (!isMounted) {
           return;
         }
-        setSummary(res);
+        setSummary(data);
         setLoadState("ready");
       } catch {
-        if (ok) {
+        if (isMounted) {
           setLoadState("error");
         }
       }
@@ -54,24 +54,23 @@ export function DashboardPage({ onOpenPractice }: DashboardPageProps) {
     void load();
 
     return () => {
-      ok = false;
+      isMounted = false;
     };
   }, []);
 
-  const gridBits = useMemo(() => {
+  const heatmapModel = useMemo(() => {
     const cells = summary?.heatmap ?? [];
-    const rows = Array.from(
+    const students = Array.from(
       new Map(cells.map((cell) => [cell.studentId, cell.displayName])).entries()
     ).map(([studentId, displayName]) => ({ studentId, displayName }));
-    const cols = Array.from(
+    const kcs = Array.from(
       new Map(cells.map((cell) => [cell.kcCode, cell.kcName])).entries()
     ).map(([kcCode, kcName]) => ({ kcCode, kcName }));
 
-    // TODO: replace find() with map lookup if class size grows
     return {
-      rows,
-      cols,
-      cellFor: (studentId: string, kcCode: string) =>
+      students,
+      kcs,
+      getCell: (studentId: string, kcCode: string) =>
         cells.find((cell) => cell.studentId === studentId && cell.kcCode === kcCode)
     };
   }, [summary?.heatmap]);
@@ -155,16 +154,16 @@ export function DashboardPage({ onOpenPractice }: DashboardPageProps) {
                 <CardTitle>Class KC Heatmap</CardTitle>
                 <p className="mt-1 text-xs text-slate-500">Rows are students; columns are knowledge components</p>
               </div>
-              <Badge variant="default">{gridBits.rows.length} shown</Badge>
+              <Badge variant="default">{heatmapModel.students.length} shown</Badge>
             </CardHeader>
 
             <CardContent className="overflow-x-auto p-4">
               <div
                 className="grid min-w-[860px] gap-2"
-                style={{ gridTemplateColumns: `160px repeat(${gridBits.cols.length}, minmax(54px, 1fr))` }}
+                style={{ gridTemplateColumns: `160px repeat(${heatmapModel.kcs.length}, minmax(54px, 1fr))` }}
               >
                 <div className="h-10" />
-                {gridBits.cols.map((kc) => (
+                {heatmapModel.kcs.map((kc) => (
                   <div
                     key={kc.kcCode}
                     title={kc.kcName}
@@ -174,7 +173,7 @@ export function DashboardPage({ onOpenPractice }: DashboardPageProps) {
                   </div>
                 ))}
 
-                {gridBits.rows.map((student) => (
+                {heatmapModel.students.map((student) => (
                   <Fragment key={student.studentId}>
                     <div className="flex h-12 min-w-0 items-center rounded-lg border border-white/10 bg-white/[0.035] px-3">
                       <div className="min-w-0">
@@ -182,8 +181,8 @@ export function DashboardPage({ onOpenPractice }: DashboardPageProps) {
                         <div className="mt-0.5 truncate text-[10px] text-slate-500">{student.studentId}</div>
                       </div>
                     </div>
-                    {gridBits.cols.map((kc) => {
-                      const cell = gridBits.cellFor(student.studentId, kc.kcCode);
+                    {heatmapModel.kcs.map((kc) => {
+                      const cell = heatmapModel.getCell(student.studentId, kc.kcCode);
                       return (
                         <div
                           key={`${student.studentId}-${kc.kcCode}`}
@@ -289,7 +288,7 @@ export function DashboardPage({ onOpenPractice }: DashboardPageProps) {
                         {submission.displayName} / {submission.kcCode}
                       </div>
                     </div>
-                    <Badge className="w-fit" variant={submission.status === "passed" ? "green" : submission.status === "failed" || submission.status === "error" ? "rose" : "amber"}>
+                    <Badge className="w-fit" variant={statusVariant(submission.status)}>
                       {submission.status}
                     </Badge>
                     <div className="flex items-center gap-2 text-xs text-slate-400">
@@ -318,4 +317,16 @@ function MiniMetric({ label, value }: { label: string; value: string | number })
       <div className="mt-1 truncate text-xs font-semibold text-slate-100">{value}</div>
     </div>
   );
+}
+
+function statusVariant(status: ExecutionStatus) {
+  if (status === "passed") {
+    return "green";
+  }
+
+  if (status === "failed" || status === "error") {
+    return "rose";
+  }
+
+  return "amber";
 }
