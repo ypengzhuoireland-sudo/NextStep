@@ -38,8 +38,8 @@ def get_student_mastery_profile(
     )
 
     return StudentMasteryProfile(
-        studentId=student_id,
-        updatedAt=latest_update.isoformat(),
+        student_id=student_id,
+        updated_at=latest_update.isoformat(),
         items=[
             MasteryKnowledgeComponent(
                 code=kc.id,

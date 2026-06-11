@@ -1,10 +1,10 @@
 [
   {
-    "student_id": "s1",
-    "username": "alice",
-    "name": "Alice",
+    "student_id": "stu_python_beginner_01",
+    "username": "student@nextstep.test",
+    "name": "Python Beginner",
     "role": "student",
-    "password_salt": "nlzWVVAZXdDVaqZJ2o_4zA",
-    "password_hash": "q3Mgkbr-JMaYcKcsmko_Uu2ufoppvfm69bE775-nv-0"
+    "password_salt": "bmV4dHN0ZXAtZGVtby1zYWx0",
+    "password_hash": "Yvw5wP2f4w-JRLbiIfqoxTO6oEJ7QjDlCDZ8qWYabkA"
   }
 ]

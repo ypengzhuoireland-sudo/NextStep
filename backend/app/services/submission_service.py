@@ -3,20 +3,33 @@ from __future__ import annotations
 import json
 from typing import Any
 
-from sqlalchemy import select
+from datetime import timezone
+
+from pydantic import BaseModel
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app.models import KnowledgeComponent, User
 from app.models.exercise import Exercise, ExerciseKnowledgeComponent
 from app.models.student_mastery import StudentMastery
 from app.models.submission import Submission
-from app.schemas.executions import ExecutionRunRequest
+from app.schemas.executions import ExecutionRunRequest, MasteryDelta
 from app.schemas.submissions import (
     SubmissionCreateRequest,
     SubmissionResponse,
-    SubmissionTestResult,
+    SubmissionRecord,
 )
-from app.services.execution_service import run_code_with_judge0
+from app.services.execution_service import (
+    build_execution_response_from_test_cases,
+    build_judge0_payload,
+    submit_to_judge0,
+)
+from app.services.mastery_service import get_student_mastery_profile
+from app.services.test_harness import (
+    build_python_test_runner_code,
+    calculate_score as calculate_runner_score,
+    parse_runner_stdout as parse_contract_runner_stdout,
+)
 
 _MODEL_IMPORTS = (KnowledgeComponent, User)
 
@@ -32,46 +45,48 @@ def create_submission(
     if exercise is None:
         raise ValueError("Exercise not found")
 
-    runner_code = build_submission_runner_code(
+    runner_code = build_python_test_runner_code(
         student_code=request.code,
         function_name=exercise.function_name,
         test_cases=exercise.test_cases,
     )
-    execution_result = run_code_with_judge0(
-        ExecutionRunRequest(code=runner_code, language=request.language),
-    )
-    test_results = parse_runner_stdout(execution_result.stdout)
-    score = calculate_score(test_results)
-    passed = bool(test_results) and score == 1.0 and execution_result.passed
-    updated_mastery = update_mastery_for_submission(db, student_id, exercise.id, passed)
+    runner_request = ExecutionRunRequest(code=runner_code, language=request.language)
+    response_data = submit_to_judge0(build_judge0_payload(runner_request))
+    test_results = parse_contract_runner_stdout(response_data.get("stdout") or "")
+    score = calculate_runner_score(test_results)
+    result = build_execution_response_from_test_cases(response_data, test_results)
+    passed = bool(test_results) and score == 1.0 and result.status == "passed"
+    mastery_delta = update_mastery_for_submission(db, student_id, exercise.id, passed)
+    result.masteryDelta = mastery_delta
 
     submission = Submission(
         student_id=student_id,
         exercise_id=exercise.id,
         code=request.code,
         language=request.language,
-        status=execution_result.status_description,
+        status=result.status,
         passed=passed,
         score=score,
-        stdout=execution_result.stdout,
-        stderr=execution_result.stderr or execution_result.compile_output or execution_result.message,
-        test_results=[result.model_dump() for result in test_results],
+        stdout=result.stdout,
+        stderr=result.stderr,
+        test_results=[item.model_dump() for item in result.testCases],
     )
     db.add(submission)
     db.commit()
     db.refresh(submission)
+    attempt_count = count_attempts(db, student_id, exercise.id)
+    mastery_profile = get_student_mastery_profile(db, student_id)
 
     return SubmissionResponse(
-        submission_id=submission.id,
-        exercise_id=exercise.id,
-        passed=passed,
-        score=score,
-        stdout=execution_result.stdout,
-        stderr=submission.stderr,
-        status_description=execution_result.status_description,
-        test_results=test_results,
-        updated_mastery=updated_mastery,
-        recommended_exercise_id=choose_next_exercise_id(db, student_id),
+        submission=SubmissionRecord(
+            id=f"sub_{submission.id}",
+            status=result.status,
+            correct=passed,
+            attempt_count=attempt_count,
+            created_at=submission.created_at.astimezone(timezone.utc).isoformat(),
+        ),
+        result=result,
+        masteryProfile=[] if mastery_profile is None else mastery_profile.items,
     )
 
 
@@ -81,66 +96,35 @@ def build_submission_runner_code(
     function_name: str,
     test_cases: list[dict[str, Any]],
 ) -> str:
-    test_cases_json = json.dumps(test_cases, ensure_ascii=False)
-
-    return (
-        f"{student_code}\n\n"
-        "import json\n"
-        "import traceback\n\n"
-        "def __nextstep_run_tests():\n"
-        f"    test_cases = {test_cases_json}\n"
-        "    results = []\n"
-        "    for index, test_case in enumerate(test_cases, start=1):\n"
-        "        test_input = test_case.get('input')\n"
-        "        expected = test_case.get('expected_output')\n"
-        "        actual = None\n"
-        "        error = ''\n"
-        "        passed = False\n"
-        "        try:\n"
-        "            if isinstance(test_input, dict):\n"
-        f"                actual = {function_name}(**test_input)\n"
-        "            elif isinstance(test_input, list):\n"
-        f"                actual = {function_name}(*test_input)\n"
-        "            else:\n"
-        f"                actual = {function_name}(test_input)\n"
-        "            passed = actual == expected\n"
-        "        except Exception:\n"
-        "            error = traceback.format_exc()\n"
-        "        results.append({\n"
-        "            'name': f'case {index}',\n"
-        "            'passed': passed,\n"
-        "            'input': test_input,\n"
-        "            'expected_output': expected,\n"
-        "            'actual_output': actual,\n"
-        "            'error': error,\n"
-        "        })\n"
-        "    print(json.dumps({'results': results}, ensure_ascii=False))\n\n"
-        "__nextstep_run_tests()\n"
-    )
+    return build_python_test_runner_code(student_code, function_name, test_cases)
 
 
 # Convert the JSON printed by the generated test harness into typed test results.
-def parse_runner_stdout(stdout: str) -> list[SubmissionTestResult]:
-    try:
-        payload = json.loads(stdout.strip())
-    except json.JSONDecodeError:
-        return []
+class LegacySubmissionTestResult(BaseModel):
+    name: str
+    passed: bool
+    input: Any
+    expected_output: Any
+    actual_output: Any = None
+    error: str = ""
 
+
+def parse_runner_stdout(stdout: str) -> list[LegacySubmissionTestResult]:
     return [
-        SubmissionTestResult(
-            name=item.get("name", ""),
+        LegacySubmissionTestResult(
+            name=str(item.get("label") or item.get("name") or ""),
             passed=bool(item.get("passed")),
             input=item.get("input"),
-            expected_output=item.get("expected_output"),
-            actual_output=item.get("actual_output"),
+            expected_output=item.get("expected", item.get("expected_output")),
+            actual_output=item.get("actual", item.get("actual_output")),
             error=item.get("error") or "",
         )
-        for item in payload.get("results", [])
+        for item in parse_contract_runner_stdout(stdout)
     ]
 
 
 # Calculate a score between 0 and 1 from the number of passed test cases.
-def calculate_score(test_results: list[SubmissionTestResult]) -> float:
+def calculate_score(test_results: list[LegacySubmissionTestResult]) -> float:
     if not test_results:
         return 0.0
 
@@ -154,13 +138,13 @@ def update_mastery_for_submission(
     student_id: str,
     exercise_id: str,
     passed: bool,
-) -> dict[str, float]:
+) -> list[MasteryDelta]:
     kc_ids = db.scalars(
         select(ExerciseKnowledgeComponent.kc_id).where(
             ExerciseKnowledgeComponent.exercise_id == exercise_id,
         )
     ).all()
-    updated_mastery: dict[str, float] = {}
+    mastery_delta: list[MasteryDelta] = []
 
     for kc_id in kc_ids:
         mastery = db.get(StudentMastery, (student_id, kc_id))
@@ -169,11 +153,18 @@ def update_mastery_for_submission(
             mastery = StudentMastery(student_id=student_id, kc_id=kc_id, mastery=0.0)
             db.add(mastery)
 
+        before = mastery.mastery
         delta = 0.08 if passed else -0.04
         mastery.mastery = max(0.0, min(1.0, round(mastery.mastery + delta, 2)))
-        updated_mastery[kc_id] = mastery.mastery
+        mastery_delta.append(
+            MasteryDelta(
+                kcCode=kc_id,
+                before=before,
+                after=mastery.mastery,
+            )
+        )
 
-    return updated_mastery
+    return mastery_delta
 
 
 # Recommend the first exercise linked to the student's current weakest KC.
@@ -194,3 +185,15 @@ def choose_next_exercise_id(db: Session, student_id: str) -> str | None:
         .where(ExerciseKnowledgeComponent.kc_id == weakest.kc_id)
         .order_by(Exercise.id)
     ).first()
+
+
+def count_attempts(db: Session, student_id: str, exercise_id: str) -> int:
+    return int(
+        db.scalar(
+            select(func.count(Submission.id)).where(
+                Submission.student_id == student_id,
+                Submission.exercise_id == exercise_id,
+            )
+        )
+        or 0
+    )

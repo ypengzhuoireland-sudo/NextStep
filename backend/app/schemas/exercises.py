@@ -5,9 +5,8 @@ class ExerciseListItem(BaseModel):
     id: str
     title: str
     difficulty: str
-    primaryKc: str
-    estimatedMinutes: int
-    status: str
+    primary_kc: str
+    estimated_minutes: int
 
 
 class ExerciseListResponse(BaseModel):

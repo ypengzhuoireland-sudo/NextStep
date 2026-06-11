@@ -51,8 +51,8 @@ def build_current_exercise_response(
 
     if mastery_profile is None:
         mastery_profile = StudentMasteryProfile(
-            studentId=student_id,
-            updatedAt=datetime.now(timezone.utc).isoformat(),
+            student_id=student_id,
+            updated_at=datetime.now(timezone.utc).isoformat(),
             items=[],
         )
 

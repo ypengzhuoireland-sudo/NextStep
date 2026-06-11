@@ -36,13 +36,6 @@ def build_dashboard_response(db: Session, current_user: UserProfile) -> Dashboar
     learning_path = sorted(kcs, key=lambda kc: kc.mastery)[:5]
 
     return DashboardResponse(
-        student_name=current_user.name,
-        active_goal=active_goal,
-        backend_status=backend_status,
-        mastery_average=mastery_average,
-        recommended_exercise_id=recommended_exercise_id,
-        knowledge_components=kcs,
-        exercises=exercises,
         studentId=current_user.student_id,
         studentName=current_user.name,
         activeGoal=active_goal,

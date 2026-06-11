@@ -25,13 +25,6 @@ class Exercise(BaseModel):
 
 # Represent the full dashboard response returned to the logged-in user.
 class DashboardResponse(BaseModel):
-    student_name: str
-    active_goal: str
-    backend_status: str
-    mastery_average: float
-    recommended_exercise_id: str
-    knowledge_components: list[KnowledgeComponent]
-    exercises: list[Exercise]
     studentId: str
     studentName: str
     activeGoal: str

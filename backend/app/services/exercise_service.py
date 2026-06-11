@@ -84,9 +84,8 @@ def to_exercise_list_item(exercise: ExerciseModel) -> ExerciseListItem:
         id=exercise.id,
         title=exercise.title,
         difficulty=exercise.difficulty,
-        primaryKc=exercise.kc_id,
-        estimatedMinutes=exercise.estimated_minutes,
-        status=to_frontend_status(exercise.status),
+        primary_kc=exercise.kc_id,
+        estimated_minutes=exercise.estimated_minutes,
     )
 
 

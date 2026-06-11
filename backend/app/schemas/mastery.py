@@ -11,6 +11,6 @@ class MasteryKnowledgeComponent(BaseModel):
 
 
 class StudentMasteryProfile(BaseModel):
-    studentId: str
-    updatedAt: str
+    student_id: str
+    updated_at: str
     items: list[MasteryKnowledgeComponent]

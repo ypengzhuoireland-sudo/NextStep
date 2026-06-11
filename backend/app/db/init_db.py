@@ -2,7 +2,7 @@ from pathlib import Path
 import json
 from typing import Any
 
-from sqlalchemy import delete, text
+from sqlalchemy import delete, select, text
 from sqlalchemy.orm import Session
 
 from app.db.base import Base
@@ -180,20 +180,19 @@ def upsert_exercises(db: Session, exercise_items: list[dict[str, Any]]) -> None:
 
 
 def seed_default_mastery(db: Session, kc_ids: set[str]) -> None:
-    default_student_id = "s1"
-    default_user = db.query(User).filter(User.student_id == default_student_id).one_or_none()
+    student_ids = db.scalars(
+        select(User.student_id).where(User.is_active.is_(True)).order_by(User.student_id)
+    ).all()
 
-    if default_user is None:
-        return
+    for student_id in student_ids:
+        for kc_id in sorted(kc_ids):
+            mastery = db.get(StudentMastery, (student_id, kc_id))
 
-    for kc_id in sorted(kc_ids):
-        mastery = db.get(StudentMastery, (default_student_id, kc_id))
-
-        if mastery is None:
-            db.add(
-                StudentMastery(
-                    student_id=default_student_id,
-                    kc_id=kc_id,
-                    mastery=0.0,
+            if mastery is None:
+                db.add(
+                    StudentMastery(
+                        student_id=student_id,
+                        kc_id=kc_id,
+                        mastery=0.0,
+                    )
                 )
-            )

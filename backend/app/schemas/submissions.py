@@ -1,34 +1,27 @@
-from typing import Any
-
 from pydantic import BaseModel, Field
+
+from app.schemas.executions import ExecutionRunResponse
+from app.schemas.mastery import MasteryKnowledgeComponent
 
 
 # Validate the exercise, source code, and language sent to POST /api/submissions.
 class SubmissionCreateRequest(BaseModel):
+    session_id: str | None = None
+    student_id: str | None = None
     exercise_id: str
     code: str = Field(min_length=1)
     language: str = "python"
 
 
-# Represent the expected value, actual value, and outcome of one test case.
-class SubmissionTestResult(BaseModel):
-    name: str
-    passed: bool
-    input: Any
-    expected_output: Any
-    actual_output: Any = None
-    error: str = ""
+class SubmissionRecord(BaseModel):
+    id: str
+    status: str
+    correct: bool
+    attempt_count: int
+    created_at: str
 
 
-# Define the saved submission, test feedback, mastery update, and recommendation response.
 class SubmissionResponse(BaseModel):
-    submission_id: int
-    exercise_id: str
-    passed: bool
-    score: float
-    stdout: str
-    stderr: str
-    status_description: str
-    test_results: list[SubmissionTestResult]
-    updated_mastery: dict[str, float]
-    recommended_exercise_id: str | None
+    submission: SubmissionRecord
+    result: ExecutionRunResponse
+    masteryProfile: list[MasteryKnowledgeComponent]

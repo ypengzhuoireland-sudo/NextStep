@@ -1,12 +1,14 @@
 from __future__ import annotations
 
 import json
+import secrets
 from typing import Any
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
 from app.core.config import settings
-from app.schemas.executions import ExecutionRunRequest, ExecutionRunResponse
+from app.schemas.executions import ExecutionRunRequest, ExecutionRunResponse, ExecutionTestCase
+from app.services.test_harness import format_case_value
 
 
 # Represent execution failures that should be returned as API errors.
@@ -81,20 +83,148 @@ def normalize_judge0_response(
     message = response.get("message") or ""
     status_description = status.get("description") or "Unknown"
     accepted = status_id == 3
-    output_matches = True
+    runtime_ms = to_runtime_ms(response.get("time"))
+    memory_mb = to_memory_mb(response.get("memory"))
+    test_cases: list[ExecutionTestCase] = []
 
     if request.expected_output is not None:
-        output_matches = stdout.strip() == request.expected_output.strip()
+        actual = stdout.strip()
+        expected = request.expected_output.strip()
+        test_cases = [
+            ExecutionTestCase(
+                id="case_1",
+                label="Expected stdout",
+                input=request.stdin,
+                expected=expected,
+                actual=actual,
+                hidden=False,
+                passed=accepted and actual == expected,
+                runtimeMs=runtime_ms,
+            )
+        ]
+
+    total_count = len(test_cases)
+    passed_count = sum(1 for test_case in test_cases if test_case.passed)
+
+    if not accepted:
+        result_status = "error"
+        error_type = map_judge0_error_type(status_id, status_description)
+    elif total_count > 0 and passed_count != total_count:
+        result_status = "failed"
+        error_type = "failed_tests"
+    else:
+        result_status = "passed"
+        error_type = None
+
+    summary = build_summary(result_status, passed_count, total_count, status_description)
 
     return ExecutionRunResponse(
-        passed=accepted and output_matches,
+        id=f"run_{secrets.token_urlsafe(8)}",
+        status=result_status,
+        summary=summary,
+        errorType=error_type,
+        runtimeMs=runtime_ms,
+        memoryMb=memory_mb,
+        passedCount=passed_count,
+        totalCount=total_count,
         stdout=stdout,
-        stderr=stderr,
-        compile_output=compile_output,
-        message=message,
-        status_id=status_id,
-        status_description=status_description,
-        time=response.get("time"),
-        memory=response.get("memory"),
-        token=response.get("token"),
+        stderr=stderr or compile_output or message,
+        testCases=test_cases,
+        masteryDelta=[],
     )
+
+
+def build_execution_response_from_test_cases(
+    response: dict[str, Any],
+    test_results: list[dict[str, Any]],
+) -> ExecutionRunResponse:
+    status = response.get("status") or {}
+    status_id = status.get("id")
+    stdout = response.get("stdout") or ""
+    stderr = response.get("stderr") or ""
+    compile_output = response.get("compile_output") or ""
+    message = response.get("message") or ""
+    status_description = status.get("description") or "Unknown"
+    runtime_ms = to_runtime_ms(response.get("time"))
+    memory_mb = to_memory_mb(response.get("memory"))
+    accepted = status_id == 3
+    test_cases = [
+        ExecutionTestCase(
+            id=str(item.get("id") or f"case_{index}"),
+            label=str(item.get("label") or f"case {index}"),
+            input=format_case_value(item.get("input")),
+            expected=format_case_value(item.get("expected")),
+            actual=format_case_value(item.get("actual")),
+            hidden=bool(item.get("hidden")),
+            passed=bool(item.get("passed")),
+            runtimeMs=int(item.get("runtimeMs") or 0),
+        )
+        for index, item in enumerate(test_results, start=1)
+    ]
+    total_count = len(test_cases)
+    passed_count = sum(1 for test_case in test_cases if test_case.passed)
+
+    if not accepted:
+        result_status = "error"
+        error_type = map_judge0_error_type(status_id, status_description)
+    elif passed_count == total_count and total_count > 0:
+        result_status = "passed"
+        error_type = None
+    else:
+        result_status = "failed"
+        error_type = "failed_tests"
+
+    return ExecutionRunResponse(
+        id=f"run_{secrets.token_urlsafe(8)}",
+        status=result_status,
+        summary=build_summary(result_status, passed_count, total_count, status_description),
+        errorType=error_type,
+        runtimeMs=runtime_ms,
+        memoryMb=memory_mb,
+        passedCount=passed_count,
+        totalCount=total_count,
+        stdout=stdout,
+        stderr=stderr or compile_output or message,
+        testCases=test_cases,
+        masteryDelta=[],
+    )
+
+
+def build_summary(
+    result_status: str,
+    passed_count: int,
+    total_count: int,
+    status_description: str,
+) -> str:
+    if result_status == "passed":
+        return "All tests passed." if total_count else status_description
+    if result_status == "failed":
+        return f"{passed_count} of {total_count} tests passed."
+    return status_description
+
+
+def map_judge0_error_type(status_id: int | None, status_description: str) -> str:
+    text = status_description.lower()
+
+    if status_id == 5 or "time" in text:
+        return "timeout"
+    if "compilation" in text or "syntax" in text:
+        return "syntax_error"
+    if "runtime" in text:
+        return "runtime_error"
+
+    return "runtime_error"
+
+
+def to_runtime_ms(value: Any) -> int:
+    try:
+        return int(float(value or 0) * 1000)
+    except (TypeError, ValueError):
+        return 0
+
+
+def to_memory_mb(value: Any) -> float:
+    try:
+        return round(float(value or 0) / 1024, 1)
+    except (TypeError, ValueError):
+        return 0.0
