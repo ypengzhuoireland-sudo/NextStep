@@ -86,9 +86,9 @@ export function CodeEditor({
         </TooltipProvider>
       </div>
 
-      <div className="relative min-h-[520px] flex-1">
+      <div className="relative h-[520px] flex-1">
         <Editor
-          height="100%"
+          height="520px"
           defaultLanguage="python"
           value={code}
           theme="vs-dark"

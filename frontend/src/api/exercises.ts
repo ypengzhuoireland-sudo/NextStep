@@ -8,6 +8,17 @@ interface ExerciseQuery {
   status?: "published" | "draft";
 }
 
+interface ExerciseListApiResponse {
+  items: Array<{
+    id: string;
+    title: string;
+    difficulty: Difficulty;
+    primary_kc: string;
+    estimated_minutes: number;
+  }>;
+  total: number;
+}
+
 export async function getExercises(query: ExerciseQuery = {}): Promise<ExerciseListResponse> {
   if (USE_MOCK_API) {
     await wait(340);
@@ -40,8 +51,26 @@ export async function getExercises(query: ExerciseQuery = {}): Promise<ExerciseL
     params.set("status", query.status);
   }
 
-  const suffix = params.size ? `?${params.toString()}` : "";
-  return apiRequest<ExerciseListResponse>(`/exercises${suffix}`);
+  const suffix = params.size
+    ? `?${params.toString()}`
+    : "";
+
+  const response =
+    await apiRequest<ExerciseListApiResponse>(
+      `/exercises${suffix}`
+    );
+
+  return {
+    items: response.items.map((item) => ({
+      id: item.id,
+      title: item.title,
+      difficulty: item.difficulty,
+      primaryKc: item.primary_kc,
+      estimatedMinutes: item.estimated_minutes,
+      status: query.status ?? "published"
+    })),
+    total: response.total
+  };
 }
 
 export async function getExerciseById(exerciseId: string): Promise<Exercise> {
