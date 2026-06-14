@@ -1,0 +1,101 @@
+[
+  {
+    "id": "ex-001",
+    "title": "Format a Greeting",
+    "kc": "python_basics",
+    "difficulty": "easy",
+    "status": "ready",
+    "description": "Read a name from input and print a greeting in the format: Hello, <name>!",
+    "starter_code": "name = input()\n# Write your code here\n",
+    "test_cases": [
+      {
+        "input": "Alice",
+        "expected_output": "Hello, Alice!"
+      },
+      {
+        "input": "Sam",
+        "expected_output": "Hello, Sam!"
+      }
+    ]
+  },
+  {
+    "id": "ex-002",
+    "title": "Compare Two Numbers",
+    "kc": "types_comparison",
+    "difficulty": "easy",
+    "status": "ready",
+    "description": "Read two integers and print the larger value. If they are equal, print either value.",
+    "starter_code": "a = int(input())\nb = int(input())\n# Write your code here\n",
+    "test_cases": [
+      {
+        "input": "3\n7",
+        "expected_output": "7"
+      },
+      {
+        "input": "10\n4",
+        "expected_output": "10"
+      }
+    ]
+  },
+  {
+    "id": "ex-003",
+    "title": "Temperature Advice",
+    "kc": "conditionals",
+    "difficulty": "medium",
+    "status": "ready",
+    "description": "Read a temperature as an integer. Print Cold if it is below 10, Warm if it is 10 to 25, and Hot otherwise.",
+    "starter_code": "temperature = int(input())\n# Write your code here\n",
+    "test_cases": [
+      {
+        "input": "5",
+        "expected_output": "Cold"
+      },
+      {
+        "input": "18",
+        "expected_output": "Warm"
+      },
+      {
+        "input": "31",
+        "expected_output": "Hot"
+      }
+    ]
+  },
+  {
+    "id": "ex-004",
+    "title": "Sum Numbers with a Loop",
+    "kc": "loops",
+    "difficulty": "medium",
+    "status": "recommended",
+    "description": "Read an integer n and print the sum of all numbers from 1 to n inclusive.",
+    "starter_code": "n = int(input())\ntotal = 0\n# Write your loop here\nprint(total)\n",
+    "test_cases": [
+      {
+        "input": "5",
+        "expected_output": "15"
+      },
+      {
+        "input": "10",
+        "expected_output": "55"
+      }
+    ]
+  },
+  {
+    "id": "ex-005",
+    "title": "Find the Largest List Item",
+    "kc": "lists",
+    "difficulty": "medium",
+    "status": "ready",
+    "description": "Read a line of space-separated integers and print the largest number in the list.",
+    "starter_code": "numbers = [int(x) for x in input().split()]\n# Write your code here\n",
+    "test_cases": [
+      {
+        "input": "4 8 2 6",
+        "expected_output": "8"
+      },
+      {
+        "input": "-3 -9 -1",
+        "expected_output": "-1"
+      }
+    ]
+  }
+]
