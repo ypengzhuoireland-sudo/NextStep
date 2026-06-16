@@ -1,4 +1,6 @@
 import unittest
+from contextlib import redirect_stdout
+from io import StringIO
 
 from app.services.submission_service import (
     build_submission_runner_code,
@@ -22,6 +24,51 @@ class SubmissionServiceTest(unittest.TestCase):
         self.assertIn("def add_one(value):", runner_code)
         self.assertIn("actual = add_one(**test_input)", runner_code)
         self.assertIn('"expected_output": 2', runner_code)
+
+    # Verify that floating-point rounding noise does not fail numeric test cases.
+    def test_build_submission_runner_code_uses_tolerance_for_float_results(self):
+        runner_code = build_submission_runner_code(
+            student_code="def add_tax(price, rate):\n    return price * (1 + rate)\n",
+            function_name="add_tax",
+            test_cases=[
+                {"input": {"price": 50, "rate": 0.1}, "expected_output": 55.0},
+            ],
+        )
+
+        output = StringIO()
+        with redirect_stdout(output):
+            exec(runner_code, {})
+
+        results = parse_runner_stdout(output.getvalue())
+
+        self.assertEqual(len(results), 1)
+        self.assertTrue(results[0].passed)
+
+    # Verify that boolean inputs are rendered as valid Python values in the runner code.
+    def test_build_submission_runner_code_supports_boolean_inputs(self):
+        runner_code = build_submission_runner_code(
+            student_code=(
+                "def greet(name, excited=False):\n"
+                "    if excited:\n"
+                "        return f'Hello, {name}!'\n"
+                "    return f'Hello, {name}.'\n"
+            ),
+            function_name="greet",
+            test_cases=[
+                {"input": {"name": "Mia"}, "expected_output": "Hello, Mia."},
+                {"input": {"name": "Sam", "excited": True}, "expected_output": "Hello, Sam!"},
+                {"input": {"name": "Lee", "excited": False}, "expected_output": "Hello, Lee."},
+            ],
+        )
+
+        output = StringIO()
+        with redirect_stdout(output):
+            exec(runner_code, {})
+
+        results = parse_runner_stdout(output.getvalue())
+
+        self.assertEqual(len(results), 3)
+        self.assertTrue(all(result.passed for result in results))
 
     # Verify that stdout JSON from the runner is converted to test result rows.
     def test_parse_runner_stdout_reads_results(self):

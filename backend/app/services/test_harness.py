@@ -10,14 +10,30 @@ def build_python_test_runner_code(
     test_cases: list[dict[str, Any]],
 ) -> str:
     test_cases_json = json.dumps(test_cases, ensure_ascii=False)
+    test_cases_literal = repr(test_cases_json)
 
     return (
         f"{student_code}\n\n"
         "import json\n"
+        "import math\n"
         "import traceback\n"
         "import time\n\n"
+        "def __nextstep_is_number(value):\n"
+        "    return isinstance(value, (int, float)) and not isinstance(value, bool)\n\n"
+        "def __nextstep_values_equal(actual, expected):\n"
+        "    if __nextstep_is_number(actual) and __nextstep_is_number(expected):\n"
+        "        return math.isclose(actual, expected, rel_tol=1e-9, abs_tol=1e-6)\n"
+        "    if isinstance(actual, list) and isinstance(expected, list):\n"
+        "        return len(actual) == len(expected) and all(\n"
+        "            __nextstep_values_equal(a, e) for a, e in zip(actual, expected)\n"
+        "        )\n"
+        "    if isinstance(actual, dict) and isinstance(expected, dict):\n"
+        "        return actual.keys() == expected.keys() and all(\n"
+        "            __nextstep_values_equal(actual[key], expected[key]) for key in expected\n"
+        "        )\n"
+        "    return actual == expected\n\n"
         "def __nextstep_run_tests():\n"
-        f"    test_cases = {test_cases_json}\n"
+        f"    test_cases = json.loads({test_cases_literal})\n"
         "    results = []\n"
         "    for index, test_case in enumerate(test_cases, start=1):\n"
         "        test_input = test_case.get('input')\n"
@@ -33,7 +49,7 @@ def build_python_test_runner_code(
         f"                actual = {function_name}(*test_input)\n"
         "            else:\n"
         f"                actual = {function_name}(test_input)\n"
-        "            passed = actual == expected\n"
+        "            passed = __nextstep_values_equal(actual, expected)\n"
         "        except Exception:\n"
         "            error = traceback.format_exc()\n"
         "        runtime_ms = int((time.perf_counter() - started_at) * 1000)\n"
