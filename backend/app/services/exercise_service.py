@@ -112,6 +112,7 @@ def list_knowledge_component_tags(
         KnowledgeComponentTag(
             code=kc.id,
             name=kc.name,
+            shortName=kc.short_name,
             description=kc.description or "",
             mastery=mastery or 0.0,
             trend=0.0,
@@ -164,7 +165,7 @@ def build_recommendation(
     else:
         reason = (
             f"{weakest_kc.name} mastery is {weakest_kc.mastery:.2f}. "
-            f"This exercise targets {weakest_kc.code} at {exercise.difficulty} difficulty."
+            f"This exercise targets {weakest_kc.name} at {exercise.difficulty} difficulty."
         )
 
     return ExerciseRecommendation(

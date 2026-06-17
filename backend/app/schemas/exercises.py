@@ -17,6 +17,7 @@ class ExerciseListResponse(BaseModel):
 class KnowledgeComponentTag(BaseModel):
     code: str
     name: str
+    shortName: str | None = None
     description: str
     mastery: float
     trend: float

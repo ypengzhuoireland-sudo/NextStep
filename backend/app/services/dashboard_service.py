@@ -54,6 +54,7 @@ def list_dashboard_mastery(db: Session, student_id: str) -> list[KnowledgeCompon
         select(
             KnowledgeComponentModel.id,
             KnowledgeComponentModel.name,
+            KnowledgeComponentModel.short_name,
             KnowledgeComponentModel.description,
             StudentMastery.mastery,
         )
@@ -67,6 +68,7 @@ def list_dashboard_mastery(db: Session, student_id: str) -> list[KnowledgeCompon
             id=row.id,
             code=row.id,
             name=row.name,
+            shortName=row.short_name,
             description=row.description or "",
             mastery=row.mastery,
             trend=0.0,
@@ -113,6 +115,7 @@ def build_class_dashboard_summary(db: Session, class_id: str) -> ClassDashboardS
             display_name=user.name,
             kc_code=kc.id,
             kc_name=kc.name,
+            kc_short_name=kc.short_name,
             mastery=mastery_by_student_kc.get((user.student_id, kc.id), 0.0),
         )
         for user in users

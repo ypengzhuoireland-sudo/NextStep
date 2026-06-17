@@ -2,6 +2,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.models.exercise import Exercise, ExerciseKnowledgeComponent
+from app.models.knowledge_component import KnowledgeComponent
 from app.models.student_mastery import StudentMastery
 from app.schemas.recommendations import (
     NextRecommendationRequest,
@@ -78,8 +79,11 @@ def build_next_recommendation(
     exercise = None if exercise_id is None else get_exercise_by_id(db, exercise_id, student_id)
     strategy = "lowest_mastery_with_difficulty_match"
     confidence = 0.82
+    weakest_kc_name = db.scalar(
+        select(KnowledgeComponent.name).where(KnowledgeComponent.id == weakest.kc_id)
+    ) or weakest.kc_id
     reason = (
-        f"Recommended because {weakest.kc_id} mastery is "
+        f"Recommended because {weakest_kc_name} mastery is "
         f"{weakest.mastery:.2f} below the target threshold."
     )
     if exercise is not None:

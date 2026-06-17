@@ -17,6 +17,7 @@ interface ClassDashboardApiResponse {
     display_name: string;
     kc_code: string;
     kc_name: string;
+    kc_short_name?: string | null;
     mastery: number;
   }>;
   risk_students: Array<{
@@ -81,6 +82,7 @@ export async function getClassDashboardSummary(
       displayName: item.display_name,
       kcCode: item.kc_code,
       kcName: item.kc_name,
+      kcShortName: item.kc_short_name,
       mastery: item.mastery
     })),
     riskStudents: response.risk_students.map((item) => ({
