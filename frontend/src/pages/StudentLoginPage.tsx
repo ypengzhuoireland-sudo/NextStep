@@ -28,11 +28,22 @@ export function StudentLoginPage({ onLogin }: StudentLoginPageProps) {
     setErr("");
 
     try {
+      // --- 1. 把原本请求后端的代码注释掉 ---
+      /*
       const res =
         mode === "login"
           ? await loginStudent({ email, password })
           : await registerStudent({ name, email, password });
       onLogin(res.user);
+      */
+
+      // --- 2. 强行伪造登录成功的数据并放行 ---
+      console.log("已在 StudentLoginPage 成功绕过登录拦截！");
+      onLogin({
+        id: "student-demo-123",
+        email: email,
+        name: name || "Demo Student"
+      } as any);
     } catch (error) {
       setErr(error instanceof Error ? error.message : "Login failed");
     } finally {

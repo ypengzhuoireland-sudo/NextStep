@@ -49,8 +49,11 @@ const checks = [
     message: "usePracticeSession should refresh learning advice after submissions."
   },
   {
-    ok: pageSource.includes("<LearningAdviceCard") && pageSource.indexOf("<LearningAdviceCard") > pageSource.indexOf("<MasteryWidget"),
-    message: "PracticePage should render LearningAdviceCard after MasteryWidget in the right sidebar."
+    ok:
+      pageSource.includes("learningAdvice={learningAdvice}") &&
+      pageSource.includes("isLearningAdviceLoading={isLearningAdviceLoading}") &&
+      !pageSource.includes("<LearningAdviceCard"),
+    message: "PracticePage should pass learning advice into ExercisePanel instead of rendering it in the right sidebar."
   }
 ];
 
