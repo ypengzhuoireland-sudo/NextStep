@@ -1,16 +1,19 @@
 import { motion } from "framer-motion";
-import { BookOpen, Brain, Clock3, GitBranch, Target } from "lucide-react";
+import { BookOpen, Brain, Clock3, Target } from "lucide-react";
+import { LearningAdviceSection } from "@/components/mastery/LearningAdviceCard";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import type { Exercise } from "@/types/tutor";
+import type { Exercise, LearningAdvice } from "@/types/tutor";
 import { difficultyLabel, difficultyTone, formatPercent } from "@/utils/formatters";
 
 interface ExercisePanelProps {
   exercise: Exercise;
+  learningAdvice: LearningAdvice | null;
+  isLearningAdviceLoading: boolean;
 }
 
-export function ExercisePanel({ exercise }: ExercisePanelProps) {
+export function ExercisePanel({ exercise, learningAdvice, isLearningAdviceLoading }: ExercisePanelProps) {
   return (
     <Card className="h-full overflow-hidden">
       <CardHeader className="border-b border-white/10">
@@ -94,17 +97,10 @@ export function ExercisePanel({ exercise }: ExercisePanelProps) {
           </div>
         </section>
 
-        <section className="rounded-lg border border-violet-300/15 bg-violet-300/[0.07] p-3">
-          <div className="flex items-center gap-2 text-xs font-semibold uppercase text-violet-200">
-            <GitBranch className="h-3.5 w-3.5" />
-            AI Recommendation
-          </div>
-          <p className="mt-2 text-sm leading-6 text-slate-200">{exercise.recommendation.reason}</p>
-          <div className="mt-3 flex items-center justify-between text-xs text-slate-400">
-            <span>{exercise.recommendation.strategy}</span>
-            <span>{Math.round(exercise.recommendation.confidence * 100)}% confidence</span>
-          </div>
-        </section>
+        <LearningAdviceSection
+          advice={learningAdvice}
+          isLoading={isLearningAdviceLoading}
+        />
       </CardContent>
     </Card>
   );
