@@ -15,6 +15,7 @@ def list_knowledge_components(db: Session) -> KnowledgeComponentListResponse:
         select(
             KnowledgeComponent.id,
             KnowledgeComponent.name,
+            KnowledgeComponent.short_name,
             KnowledgeComponent.description,
             func.count(ExerciseKnowledgeComponent.exercise_id),
         )
@@ -25,6 +26,7 @@ def list_knowledge_components(db: Session) -> KnowledgeComponentListResponse:
         .group_by(
             KnowledgeComponent.id,
             KnowledgeComponent.name,
+            KnowledgeComponent.short_name,
             KnowledgeComponent.description,
         )
         .order_by(KnowledgeComponent.id)
@@ -34,10 +36,11 @@ def list_knowledge_components(db: Session) -> KnowledgeComponentListResponse:
         KnowledgeComponentItem(
             code=kc_id,
             name=name,
+            shortName=short_name,
             description=description or "",
             exerciseCount=exercise_count,
         )
-        for kc_id, name, description, exercise_count in rows
+        for kc_id, name, short_name, description, exercise_count in rows
     ]
 
     return KnowledgeComponentListResponse(items=items, total=len(items))
@@ -61,6 +64,7 @@ def get_knowledge_component_by_code(
     return KnowledgeComponentDetail(
         code=kc.id,
         name=kc.name,
+        shortName=kc.short_name,
         description=kc.description or "",
         exerciseCount=len(exercise_ids),
         exerciseIds=list(exercise_ids),

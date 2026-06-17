@@ -7,6 +7,7 @@ from sqlalchemy import delete, select
 from sqlalchemy.orm import Session
 
 from app.models.knowledge_component import KnowledgeComponent
+from app.models.mastery_event import MasteryEvent
 from app.models.student_mastery import StudentMastery
 from app.models.submission import Submission
 from app.models.user import User
@@ -27,6 +28,7 @@ from app.services.session_service import (
     revoke_access_token,
     verify_password,
 )
+from app.services.bkt_service import DEFAULT_BKT_PARAMETERS
 
 
 def authenticate_student(
@@ -114,6 +116,7 @@ def delete_student_account(db: Session, token: str) -> bool:
     if user is None:
         return False
 
+    db.execute(delete(MasteryEvent).where(MasteryEvent.student_id == user.student_id))
     db.execute(delete(Submission).where(Submission.student_id == user.student_id))
     db.execute(delete(StudentMastery).where(StudentMastery.student_id == user.student_id))
     db.delete(user)
@@ -178,4 +181,10 @@ def ensure_student_mastery_rows(db: Session, student_id: str) -> None:
 
     for kc_id in kc_ids:
         if db.get(StudentMastery, (student_id, kc_id)) is None:
-            db.add(StudentMastery(student_id=student_id, kc_id=kc_id, mastery=0.0))
+            db.add(
+                StudentMastery(
+                    student_id=student_id,
+                    kc_id=kc_id,
+                    mastery=DEFAULT_BKT_PARAMETERS.prior,
+                )
+            )

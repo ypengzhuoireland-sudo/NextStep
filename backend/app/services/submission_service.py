@@ -11,6 +11,7 @@ from sqlalchemy.orm import Session
 
 from app.models import KnowledgeComponent, User
 from app.models.exercise import Exercise, ExerciseKnowledgeComponent
+from app.models.mastery_event import MasteryEvent
 from app.models.student_mastery import StudentMastery
 from app.models.submission import Submission
 from app.schemas.executions import ExecutionRunRequest, MasteryDelta
@@ -25,6 +26,7 @@ from app.services.execution_service import (
     submit_to_judge0,
 )
 from app.services.mastery_service import get_student_mastery_profile
+from app.services.bkt_service import get_bkt_parameters_for_kc, update_knowledge_state
 from app.services.test_harness import (
     build_python_test_runner_code,
     calculate_score as calculate_runner_score,
@@ -145,17 +147,33 @@ def update_mastery_for_submission(
         )
     ).all()
     mastery_delta: list[MasteryDelta] = []
+    attempt_no = count_attempts(db, student_id, exercise_id) + 1
 
     for kc_id in kc_ids:
+        params = get_bkt_parameters_for_kc(db, kc_id)
         mastery = db.get(StudentMastery, (student_id, kc_id))
 
         if mastery is None:
-            mastery = StudentMastery(student_id=student_id, kc_id=kc_id, mastery=0.0)
+            mastery = StudentMastery(student_id=student_id, kc_id=kc_id, mastery=params.prior)
             db.add(mastery)
 
         before = mastery.mastery
-        delta = 0.08 if passed else -0.04
-        mastery.mastery = max(0.0, min(1.0, round(mastery.mastery + delta, 2)))
+        mastery.mastery = update_knowledge_state(before, correct=passed, params=params)
+        db.add(
+            MasteryEvent(
+                student_id=student_id,
+                exercise_id=exercise_id,
+                kc_id=kc_id,
+                old_mastery=before,
+                new_mastery=mastery.mastery,
+                correct=passed,
+                attempt_no=attempt_no,
+                bkt_prior=params.prior,
+                bkt_learn=params.learn,
+                bkt_guess=params.guess,
+                bkt_slip=params.slip,
+            )
+        )
         mastery_delta.append(
             MasteryDelta(
                 kcCode=kc_id,

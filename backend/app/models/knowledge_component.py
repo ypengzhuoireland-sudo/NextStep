@@ -10,4 +10,5 @@ class KnowledgeComponent(Base):
 
     id: Mapped[str] = mapped_column(String(100), primary_key=True)
     name: Mapped[str] = mapped_column(String(200), nullable=False)
+    short_name: Mapped[str | None] = mapped_column(String(80))
     description: Mapped[str | None] = mapped_column(Text)

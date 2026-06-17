@@ -4,6 +4,7 @@ from pydantic import BaseModel
 class KnowledgeComponentItem(BaseModel):
     code: str
     name: str
+    shortName: str | None = None
     description: str
     exerciseCount: int
 

@@ -6,6 +6,7 @@ class KnowledgeComponent(BaseModel):
     id: str
     code: str
     name: str
+    shortName: str | None = None
     description: str
     mastery: float
     trend: float
@@ -49,6 +50,7 @@ class ClassHeatmapCell(BaseModel):
     display_name: str
     kc_code: str
     kc_name: str
+    kc_short_name: str | None = None
     mastery: float
 
 

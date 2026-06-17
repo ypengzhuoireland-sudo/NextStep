@@ -2,16 +2,19 @@ from pathlib import Path
 import json
 from typing import Any
 
-from sqlalchemy import delete, select, text
+from sqlalchemy import delete, or_, select, text
 from sqlalchemy.orm import Session
 
 from app.db.base import Base
 from app.db.session import SessionLocal, engine
+from app.models.bkt_parameters import KnowledgeComponentBKTParameters
 from app.models.exercise import Exercise, ExerciseKnowledgeComponent
 from app.models.knowledge_component import KnowledgeComponent
+from app.models.mastery_event import MasteryEvent
 from app.models.student_mastery import StudentMastery
 from app.models.submission import Submission
 from app.models.user import User
+from app.services.bkt_service import DEFAULT_BKT_PARAMETERS
 
 USERS_PATH = Path(__file__).resolve().parents[2] / "seeds" / "users_seed.json"
 EXERCISE_BANK_PATH = Path(__file__).resolve().parents[2] / "seeds" / "p09_python_exercise_bank.json"
@@ -26,6 +29,7 @@ def init_db() -> None:
 
 def ensure_exercise_schema() -> None:
     statements = [
+        "ALTER TABLE knowledge_components ADD COLUMN IF NOT EXISTS short_name VARCHAR(80)",
         "ALTER TABLE exercises ADD COLUMN IF NOT EXISTS type VARCHAR(50) NOT NULL DEFAULT 'coding'",
         "ALTER TABLE exercises ADD COLUMN IF NOT EXISTS estimated_minutes INTEGER NOT NULL DEFAULT 0",
         "ALTER TABLE exercises ADD COLUMN IF NOT EXISTS function_name VARCHAR(200) NOT NULL DEFAULT ''",
@@ -91,6 +95,8 @@ def seed_exercise_bank() -> None:
         delete_stale_exercise_seed_rows(db, exercise_ids, kc_ids)
         upsert_knowledge_components(db, kc_items)
         db.flush()
+        seed_default_bkt_parameters(db, kc_ids)
+        db.flush()
         upsert_exercises(db, exercise_items)
         db.flush()
         seed_default_mastery(db, kc_ids)
@@ -119,12 +125,25 @@ def delete_stale_exercise_seed_rows(
     kc_ids: set[str],
 ) -> None:
     db.execute(
+        delete(MasteryEvent).where(
+            or_(
+                MasteryEvent.exercise_id.not_in(exercise_ids),
+                MasteryEvent.kc_id.not_in(kc_ids),
+            )
+        )
+    )
+    db.execute(
         delete(ExerciseKnowledgeComponent).where(
             ExerciseKnowledgeComponent.exercise_id.not_in(exercise_ids)
         )
     )
     db.execute(delete(Exercise).where(Exercise.id.not_in(exercise_ids)))
     db.execute(delete(StudentMastery).where(StudentMastery.kc_id.not_in(kc_ids)))
+    db.execute(
+        delete(KnowledgeComponentBKTParameters).where(
+            KnowledgeComponentBKTParameters.kc_id.not_in(kc_ids)
+        )
+    )
     db.execute(delete(KnowledgeComponent).where(KnowledgeComponent.id.not_in(kc_ids)))
 
 
@@ -137,7 +156,24 @@ def upsert_knowledge_components(db: Session, kc_items: list[dict[str, Any]]) -> 
             db.add(kc)
 
         kc.name = kc_data["kc_name"]
+        kc.short_name = kc_data.get("short_name")
         kc.description = kc_data.get("description")
+
+
+def seed_default_bkt_parameters(db: Session, kc_ids: set[str]) -> None:
+    for kc_id in sorted(kc_ids):
+        params = db.get(KnowledgeComponentBKTParameters, kc_id)
+
+        if params is None:
+            db.add(
+                KnowledgeComponentBKTParameters(
+                    kc_id=kc_id,
+                    prior=DEFAULT_BKT_PARAMETERS.prior,
+                    learn=DEFAULT_BKT_PARAMETERS.learn,
+                    guess=DEFAULT_BKT_PARAMETERS.guess,
+                    slip=DEFAULT_BKT_PARAMETERS.slip,
+                )
+            )
 
 
 def upsert_exercises(db: Session, exercise_items: list[dict[str, Any]]) -> None:
@@ -193,6 +229,6 @@ def seed_default_mastery(db: Session, kc_ids: set[str]) -> None:
                     StudentMastery(
                         student_id=student_id,
                         kc_id=kc_id,
-                        mastery=0.0,
+                        mastery=DEFAULT_BKT_PARAMETERS.prior,
                     )
                 )
