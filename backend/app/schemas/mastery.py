@@ -4,6 +4,7 @@ from pydantic import BaseModel
 class MasteryKnowledgeComponent(BaseModel):
     code: str
     name: str
+    shortName: str | None = None
     description: str
     mastery: float
     trend: float

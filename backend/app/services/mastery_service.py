@@ -44,6 +44,7 @@ def get_student_mastery_profile(
             MasteryKnowledgeComponent(
                 code=kc.id,
                 name=kc.name,
+                shortName=kc.short_name,
                 description=kc.description or "",
                 mastery=mastery or 0.0,
                 trend=0.0,

@@ -6,8 +6,11 @@ BEGIN;
 CREATE TABLE IF NOT EXISTS knowledge_components (
     id VARCHAR(100) PRIMARY KEY,
     name VARCHAR(200) NOT NULL,
+    short_name VARCHAR(80),
     description TEXT
 );
+
+ALTER TABLE knowledge_components ADD COLUMN IF NOT EXISTS short_name VARCHAR(80);
 
 CREATE TABLE IF NOT EXISTS exercises (
     id VARCHAR(100) PRIMARY KEY,
@@ -33,15 +36,16 @@ CREATE INDEX IF NOT EXISTS idx_exercises_kc_id ON exercises(kc_id);
 CREATE INDEX IF NOT EXISTS idx_exercises_difficulty ON exercises(difficulty);
 CREATE INDEX IF NOT EXISTS idx_student_mastery_student_id ON student_mastery(student_id);
 
-INSERT INTO knowledge_components (id, name, description) VALUES
-('python_basics', 'Python Basics', 'Input, output, variables and simple expressions'),
-('types_comparison', 'Types and Comparison', 'Data types, conversion and comparison operators'),
-('conditionals', 'Conditionals', 'if, elif, else and boolean conditions'),
-('loops', 'Loops', 'for loops, while loops and range'),
-('lists', 'Lists', 'List creation, indexing and traversal'),
-('functions', 'Functions', 'Function definition, parameters and return values')
+INSERT INTO knowledge_components (id, name, short_name, description) VALUES
+('python_basics', 'Python Basics', 'Basics', 'Input, output, variables and simple expressions'),
+('types_comparison', 'Types and Comparison', 'Types', 'Data types, conversion and comparison operators'),
+('conditionals', 'Conditionals', 'Cond', 'if, elif, else and boolean conditions'),
+('loops', 'Loops', 'Loops', 'for loops, while loops and range'),
+('lists', 'Lists', 'Lists', 'List creation, indexing and traversal'),
+('functions', 'Functions', 'Func', 'Function definition, parameters and return values')
 ON CONFLICT (id) DO UPDATE
 SET name = EXCLUDED.name,
+    short_name = EXCLUDED.short_name,
     description = EXCLUDED.description;
 
 INSERT INTO exercises (

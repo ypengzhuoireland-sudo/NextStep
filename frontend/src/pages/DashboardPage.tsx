@@ -64,8 +64,17 @@ export function DashboardPage({ onOpenPractice }: DashboardPageProps) {
       new Map(cells.map((cell) => [cell.studentId, cell.displayName])).entries()
     ).map(([studentId, displayName]) => ({ studentId, displayName }));
     const kcs = Array.from(
-      new Map(cells.map((cell) => [cell.kcCode, cell.kcName])).entries()
-    ).map(([kcCode, kcName]) => ({ kcCode, kcName }));
+      new Map(
+        cells.map((cell) => [
+          cell.kcCode,
+          {
+            kcCode: cell.kcCode,
+            kcName: cell.kcName,
+            kcShortName: cell.kcShortName
+          }
+        ])
+      ).values()
+    );
 
     return {
       students,
@@ -166,10 +175,10 @@ export function DashboardPage({ onOpenPractice }: DashboardPageProps) {
                 {heatmapModel.kcs.map((kc) => (
                   <div
                     key={kc.kcCode}
-                    title={kc.kcName}
+                    title={`${kc.kcCode} · ${kc.kcName}`}
                     className="flex h-10 items-end justify-center truncate px-1 text-center text-[10px] uppercase text-slate-500"
                   >
-                    {kc.kcCode}
+                    {kc.kcShortName ?? kc.kcName ?? kc.kcCode}
                   </div>
                 ))}
 

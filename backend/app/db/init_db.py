@@ -29,6 +29,7 @@ def init_db() -> None:
 
 def ensure_exercise_schema() -> None:
     statements = [
+        "ALTER TABLE knowledge_components ADD COLUMN IF NOT EXISTS short_name VARCHAR(80)",
         "ALTER TABLE exercises ADD COLUMN IF NOT EXISTS type VARCHAR(50) NOT NULL DEFAULT 'coding'",
         "ALTER TABLE exercises ADD COLUMN IF NOT EXISTS estimated_minutes INTEGER NOT NULL DEFAULT 0",
         "ALTER TABLE exercises ADD COLUMN IF NOT EXISTS function_name VARCHAR(200) NOT NULL DEFAULT ''",
@@ -155,6 +156,7 @@ def upsert_knowledge_components(db: Session, kc_items: list[dict[str, Any]]) -> 
             db.add(kc)
 
         kc.name = kc_data["kc_name"]
+        kc.short_name = kc_data.get("short_name")
         kc.description = kc_data.get("description")
 
 

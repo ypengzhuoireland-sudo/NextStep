@@ -8,61 +8,73 @@
     {
       "kc_id": "KC001",
       "kc_name": "Variables and Expressions",
+      "short_name": "Vars",
       "description": "Assign values, compute arithmetic expressions, and return numeric results."
     },
     {
       "kc_id": "KC002",
       "kc_name": "Conditionals",
+      "short_name": "Cond",
       "description": "Use if, elif, and else to select behavior from boolean conditions."
     },
     {
       "kc_id": "KC003",
       "kc_name": "Loops",
+      "short_name": "Loops",
       "description": "Use for and while loops to repeat calculations and accumulate results."
     },
     {
       "kc_id": "KC004",
       "kc_name": "Functions",
+      "short_name": "Func",
       "description": "Define reusable functions with parameters, return values, and helper logic."
     },
     {
       "kc_id": "KC005",
       "kc_name": "Strings",
+      "short_name": "Text",
       "description": "Index, slice, transform, and analyze text."
     },
     {
       "kc_id": "KC006",
       "kc_name": "Lists",
+      "short_name": "Lists",
       "description": "Create, traverse, filter, and transform list values."
     },
     {
       "kc_id": "KC007",
       "kc_name": "Dictionaries and Sets",
+      "short_name": "Dict",
       "description": "Use key-value mappings and unique-value collections for counting and lookup."
     },
     {
       "kc_id": "KC008",
       "kc_name": "Nested Data Structures",
+      "short_name": "Data",
       "description": "Work with lists of dictionaries, matrices, and nested records."
     },
     {
       "kc_id": "KC009",
       "kc_name": "Recursion",
+      "short_name": "Rec",
       "description": "Solve problems by defining base cases and recursive steps."
     },
     {
       "kc_id": "KC010",
       "kc_name": "Object-Oriented Programming",
+      "short_name": "OOP",
       "description": "Create classes with attributes, methods, and object state."
     },
     {
       "kc_id": "KC011",
       "kc_name": "Error Handling and Validation",
+      "short_name": "Valid",
       "description": "Validate inputs and raise or handle exceptions for invalid states."
     },
     {
       "kc_id": "KC012",
       "kc_name": "Problem Solving and Algorithms",
+      "short_name": "Algo",
       "description": "Combine core Python concepts to implement small algorithms."
     }
   ],

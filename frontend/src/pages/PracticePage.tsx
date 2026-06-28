@@ -18,8 +18,7 @@ interface PracticePageProps {
   onOpenDashboard?: () => void;
 }
 
-const isAiAssistantEnabled =
-  import.meta.env.VITE_ENABLE_AI_ASSISTANT === "true";
+const isAiAssistantEnabled = true;
 
 export function PracticePage({ onOpenDashboard }: PracticePageProps) {
   const {

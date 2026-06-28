@@ -7,6 +7,7 @@ export type ExperimentGroup = "adaptive" | "fixed" | "random";
 export interface KnowledgeComponent {
   code: string;
   name: string;
+  shortName?: string | null;
   description: string;
   mastery: number;
   trend: number;
@@ -159,6 +160,7 @@ export interface ClassHeatmapCell {
   displayName: string;
   kcCode: string;
   kcName: string;
+  kcShortName?: string | null;
   mastery: number;
 }
 
