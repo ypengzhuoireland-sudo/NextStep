@@ -9,7 +9,6 @@ import { ExercisePanel } from "@/components/exercise/ExercisePanel";
 import { HintPanel } from "@/components/exercise/HintPanel";
 import { NextExerciseButton } from "@/components/exercise/NextExerciseButton";
 import { SubmitResultPanel } from "@/components/exercise/SubmitResultPanel";
-import { LearningAdviceCard } from "@/components/mastery/LearningAdviceCard";
 import { LearningPath } from "@/components/mastery/LearningPath";
 import { MasteryWidget } from "@/components/mastery/MasteryWidget";
 import { Button } from "@/components/ui/button";
@@ -80,7 +79,11 @@ export function PracticePage({ onOpenDashboard }: PracticePageProps) {
           className="grid grid-cols-1 gap-4 xl:grid-cols-[360px_minmax(0,1fr)_380px]"
         >
           <div className="min-w-0">
-            <ExercisePanel exercise={session.exercise} />
+            <ExercisePanel
+              exercise={session.exercise}
+              learningAdvice={learningAdvice}
+              isLearningAdviceLoading={isLearningAdviceLoading}
+            />
           </div>
 
           <div className="min-w-0">
@@ -109,10 +112,6 @@ export function PracticePage({ onOpenDashboard }: PracticePageProps) {
               masteryProfile={session.masteryProfile}
               targetKcs={session.exercise.kcTags}
               weakKcs={weakKcs}
-            />
-            <LearningAdviceCard
-              advice={learningAdvice}
-              isLoading={isLearningAdviceLoading}
             />
             <HintPanel
               messages={session.hintMessages}
