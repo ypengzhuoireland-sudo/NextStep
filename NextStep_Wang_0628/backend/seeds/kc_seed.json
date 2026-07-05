@@ -1,8 +1,0 @@
-[
-  { "id": "python_basics", "name": "Python Basics", "mastery": 0.72 },
-  { "id": "types_comparison", "name": "Types and Comparison", "mastery": 0.58 },
-  { "id": "conditionals", "name": "Conditionals", "mastery": 0.64 },
-  { "id": "loops", "name": "Loops", "mastery": 0.46 },
-  { "id": "lists", "name": "Lists", "mastery": 0.51 },
-  { "id": "functions", "name": "Functions", "mastery": 0.39 }
-]
