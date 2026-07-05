@@ -21,13 +21,15 @@ def build_assistant_recommendation(
     request: AssistantChatRequest,
     intent_result: AssistantIntentResult,
 ) -> AssistantChatResponse:
-    """Rank real database exercises using the validated student intent."""
+    """Build the assistant response by ranking real exercises from the database."""
     mastery_by_kc = _get_mastery_by_kc(db, student_id)
     target_kc = intent_result.intent.kc_code
 
+    # If the student asks generally, route the request to their weakest known KC.
     if target_kc is None and intent_result.intent.use_weakest_kc:
         target_kc = _get_weakest_kc(mastery_by_kc)
 
+    # Only published or ready exercises should be shown to a learner.
     exercises = list(
         db.scalars(
             select(Exercise)
@@ -96,7 +98,7 @@ def build_assistant_recommendation(
 
 
 def _get_mastery_by_kc(db: Session, student_id: str) -> dict[str, float]:
-    """Read the student's current per-KC mastery values."""
+    """Load the student's latest mastery value for each KC."""
     rows = db.execute(
         select(StudentMastery.kc_id, StudentMastery.mastery)
         .where(StudentMastery.student_id == student_id)
@@ -106,7 +108,7 @@ def _get_mastery_by_kc(db: Session, student_id: str) -> dict[str, float]:
 
 
 def _get_weakest_kc(mastery_by_kc: dict[str, float]) -> str | None:
-    """Return the stable lowest-mastery KC code."""
+    """Choose the lowest mastery KC with a stable tie break by KC code."""
     if not mastery_by_kc:
         return None
     return min(mastery_by_kc, key=lambda code: (mastery_by_kc[code], code))
@@ -116,7 +118,7 @@ def _exclude_current_when_possible(
     exercises: list[Exercise],
     current_exercise_id: str | None,
 ) -> list[Exercise]:
-    """Avoid recommending the current exercise when another option exists."""
+    """Remove the current exercise unless it is the only available option."""
     if not current_exercise_id:
         return exercises
     alternatives = [
@@ -131,7 +133,7 @@ def _score_exercise(
     difficulty: str | None,
     mastery_by_kc: dict[str, float],
 ) -> float:
-    """Score topic match first, then difficulty and lower mastery."""
+    """Score exercises by requested topic, difficulty, then weaker mastery."""
     score = 0.0
     if target_kc and exercise.kc_id == target_kc:
         score += 100.0
@@ -147,7 +149,7 @@ def _build_message(
     difficulty: str | None,
     exact_match: bool,
 ) -> str:
-    """Explain the deterministic recommendation without inventing learner data."""
+    """Create a short learner-facing reason for the chosen exercise."""
     if not exact_match:
         return (
             "I could not find an exact match, so I selected the closest "

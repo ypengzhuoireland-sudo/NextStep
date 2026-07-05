@@ -75,18 +75,19 @@ WEAKEST_PATTERNS = (
 
 
 class OpenAIAssistantIntentService:
-    """Use OpenAI structured output to classify one student request."""
+    """Classify a student message with OpenAI structured JSON output."""
 
     def __init__(
         self,
         settings: OpenAISettings | None = None,
         transport: OpenAITransport | None = None,
     ) -> None:
+        """Create the service with injectable settings and HTTP transport."""
         self.settings = settings or OpenAISettings.from_env()
         self.transport = transport or OpenAIResponsesTransport(self.settings)
 
     def parse_intent(self, request: AssistantIntentRequest) -> AssistantIntent:
-        """Return a validated intent whose KC belongs to the supplied KC map."""
+        """Return a schema-validated intent limited to the supplied KC map."""
         if not self.settings.api_key:
             raise LLMGenerationError("OPENAI_API_KEY is not configured")
 
@@ -118,7 +119,7 @@ def parse_assistant_intent(
     available_kcs: dict[str, str],
     openai_service: OpenAIAssistantIntentService | None = None,
 ) -> AssistantIntentResult:
-    """Use OpenAI when available and fall back to deterministic keyword parsing."""
+    """Use OpenAI first, then fall back to keyword parsing for local testing."""
     service = openai_service or OpenAIAssistantIntentService()
     request = AssistantIntentRequest(message=message, available_kcs=available_kcs)
 
@@ -138,7 +139,7 @@ def parse_keyword_intent(
     message: str,
     available_kcs: dict[str, str],
 ) -> AssistantIntent:
-    """Classify common English topic and difficulty phrases without an API call."""
+    """Classify common topic and difficulty phrases without calling OpenAI."""
     normalized = _normalize(message)
     kc_code = next(
         (
@@ -169,10 +170,10 @@ def parse_keyword_intent(
 
 
 def _normalize(value: str) -> str:
-    """Normalise punctuation and casing for phrase matching."""
+    """Normalize punctuation and casing before phrase matching."""
     return re.sub(r"[^\w-]+", " ", value.lower()).strip()
 
 
 def _contains_phrase(value: str, phrase: str) -> bool:
-    """Match a complete word or phrase inside normalised text."""
+    """Check whether a normalized message contains a complete phrase."""
     return f" {phrase} " in f" {value} "

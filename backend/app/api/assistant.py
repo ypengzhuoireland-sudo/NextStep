@@ -23,7 +23,7 @@ def chat_with_study_assistant(
     auth_credentials: HTTPAuthorizationCredentials | None = Depends(bearer_scheme),
     db: Session = Depends(get_db),
 ) -> AssistantChatResponse:
-    """Recommend a real exercise from one authenticated student message."""
+    """Authenticate the student and return one assistant exercise recommendation."""
     if auth_credentials is None:
         _raise_unauthorized("Missing Authorization header")
 
@@ -31,6 +31,7 @@ def chat_with_study_assistant(
     if user is None:
         _raise_unauthorized("Invalid or expired student token")
 
+    # The intent parser needs the live KC map so it cannot return stale KC codes.
     available_kcs = dict(
         db.execute(
             select(KnowledgeComponent.id, KnowledgeComponent.name)
@@ -51,7 +52,7 @@ def chat_with_study_assistant(
 
 
 def _raise_unauthorized(detail: str) -> NoReturn:
-    """Return a consistent Bearer authentication error."""
+    """Raise one consistent Bearer authentication response for this router."""
     raise HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail=detail,
