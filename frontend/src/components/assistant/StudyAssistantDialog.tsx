@@ -101,6 +101,21 @@ export function StudyAssistantDialog({
       return;
     }
 
+    if (exercise.id === currentExerciseId) {
+      setMessages((items) => [
+        ...items,
+        {
+          id: `assistant-current-${Date.now()}`,
+          role: "assistant",
+          text: `${exercise.title} is already open.`
+        }
+      ]);
+      setRecommendation(null);
+      setError("");
+      setIsOpen(false);
+      return;
+    }
+
     setIsStarting(true);
     setError("");
     try {

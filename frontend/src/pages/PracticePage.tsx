@@ -18,7 +18,8 @@ interface PracticePageProps {
   onOpenDashboard?: () => void;
 }
 
-const isAiAssistantEnabled = true;
+// Keep the MVP AI assistant visible without requiring a local .env flag.
+const SHOW_AI_ASSISTANT = true;
 
 export function PracticePage({ onOpenDashboard }: PracticePageProps) {
   const {
@@ -132,7 +133,7 @@ export function PracticePage({ onOpenDashboard }: PracticePageProps) {
           <LearningAnalytics data={session.dashboardSeries} />
         </motion.section>
       </div>
-      {isAiAssistantEnabled ? (
+      {SHOW_AI_ASSISTANT ? (
         <StudyAssistantDialog
           currentExerciseId={session.exercise.id}
           disabled={isRunning || isSubmitting || isHinting || isRecommending}
