@@ -71,6 +71,24 @@ class AssistantServiceTest(unittest.TestCase):
             self.assertIsNotNone(response.recommendedExercise)
             self.assertEqual(response.recommendedExercise.id, "EX005")
 
+    def test_named_exercise_request_takes_priority_over_kc_order(self):
+        with self.SessionLocal() as db:
+            self.seed_data(db)
+
+            response = build_assistant_recommendation(
+                db,
+                student_id="s1",
+                request=AssistantChatRequest(
+                    message="give me the add_tax exercise from Variables and Expressions",
+                    currentExerciseId="EX003",
+                ),
+                intent_result=self.intent("KC001"),
+            )
+
+            self.assertIsNotNone(response.recommendedExercise)
+            self.assertEqual(response.recommendedExercise.id, "EX006")
+            self.assertTrue(response.exactMatch)
+
     def test_closest_difficulty_is_returned_when_exact_match_is_unavailable(self):
         with self.SessionLocal() as db:
             self.seed_data(db)
@@ -146,9 +164,10 @@ class AssistantServiceTest(unittest.TestCase):
         self.add_exercise(db, "EX003", "Loop Practice", "KC003", "easy")
         self.add_exercise(db, "EX004", "List Practice One", "KC006", "easy")
         self.add_exercise(db, "EX005", "List Practice Two", "KC006", "easy")
+        self.add_exercise(db, "EX006", "Add Tax Helper", "KC001", "easy", "add_tax")
         db.commit()
 
-    def add_exercise(self, db, exercise_id, title, kc_id, difficulty):
+    def add_exercise(self, db, exercise_id, title, kc_id, difficulty, function_name="answer"):
         db.add(
             Exercise(
                 id=exercise_id,
@@ -159,7 +178,7 @@ class AssistantServiceTest(unittest.TestCase):
                 estimated_minutes=5,
                 status="published",
                 description=f"Practise {title}.",
-                function_name="answer",
+                function_name=function_name,
                 starter_code="def answer():\n    pass\n",
                 test_cases=[],
                 hidden_tests=False,

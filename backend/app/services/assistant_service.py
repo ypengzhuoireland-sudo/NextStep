@@ -1,3 +1,5 @@
+import re
+
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -57,33 +59,40 @@ def build_assistant_recommendation(
             exactMatch=False,
         )
 
-    selected = min(
-        exercises,
-        key=lambda exercise: (
-            -_score_exercise(
-                exercise,
-                target_kc,
-                intent_result.intent.difficulty,
-                mastery_by_kc,
+    named_match = _find_named_exercise(exercises, request.message)
+    if named_match is not None:
+        selected = named_match
+        exact_match = True
+        message = "This exercise matches the specific exercise you requested."
+    else:
+        selected = min(
+            exercises,
+            key=lambda exercise: (
+                -_score_exercise(
+                    exercise,
+                    target_kc,
+                    intent_result.intent.difficulty,
+                    mastery_by_kc,
+                ),
+                exercise.id,
             ),
-            exercise.id,
-        ),
-    )
-    exact_match = (
-        (target_kc is None or selected.kc_id == target_kc)
-        and (
-            intent_result.intent.difficulty is None
-            or selected.difficulty == intent_result.intent.difficulty
         )
-    )
-
-    return AssistantChatResponse(
-        message=_build_message(
+        exact_match = (
+            (target_kc is None or selected.kc_id == target_kc)
+            and (
+                intent_result.intent.difficulty is None
+                or selected.difficulty == intent_result.intent.difficulty
+            )
+        )
+        message = _build_message(
             selected,
             target_kc,
             intent_result.intent.difficulty,
             exact_match,
-        ),
+        )
+
+    return AssistantChatResponse(
+        message=message,
         intent=intent,
         recommendedExercise=AssistantExerciseSummary(
             id=selected.id,
@@ -127,6 +136,29 @@ def _exclude_current_when_possible(
     return alternatives or exercises
 
 
+def _find_named_exercise(
+    exercises: list[Exercise],
+    message: str,
+) -> Exercise | None:
+    """Prefer an exercise explicitly named by id, title, or function name."""
+    normalized_message = _normalize_lookup_text(message)
+
+    for exercise in exercises:
+        candidates = (
+            exercise.id,
+            exercise.title,
+            exercise.function_name,
+        )
+        if any(
+            _contains_lookup_phrase(normalized_message, candidate)
+            for candidate in candidates
+            if candidate
+        ):
+            return exercise
+
+    return None
+
+
 def _score_exercise(
     exercise: Exercise,
     target_kc: str | None,
@@ -163,3 +195,16 @@ def _build_message(
     if target_kc:
         return "This exercise matches the topic you requested."
     return "This exercise targets one of your lowest-mastery knowledge areas."
+
+
+def _normalize_lookup_text(value: str) -> str:
+    """Normalize ids, titles, and function names for user-message matching."""
+    return re.sub(r"[^a-z0-9]+", " ", value.lower()).strip()
+
+
+def _contains_lookup_phrase(message: str, candidate: str) -> bool:
+    """Match complete normalized exercise names instead of loose substrings."""
+    normalized_candidate = _normalize_lookup_text(candidate)
+    if not normalized_candidate:
+        return False
+    return f" {normalized_candidate} " in f" {message} "
