@@ -4,6 +4,7 @@ from fastapi.responses import RedirectResponse
 
 from app.api.assistant import router as assistant_router
 from app.api.dashboard import router as dashboard_router
+from app.api.diagnostic import router as diagnostic_router
 from app.api.evaluation import router as evaluation_router
 from app.api.executions import router as executions_router
 from app.api.exercises import router as exercises_router
@@ -33,6 +34,7 @@ app.add_middleware(
 app.include_router(student_auth_router, prefix="/api")
 app.include_router(assistant_router, prefix="/api")
 app.include_router(dashboard_router, prefix="/api", tags=["dashboard"])
+app.include_router(diagnostic_router, prefix="/api")
 app.include_router(evaluation_router, prefix="/api", tags=["evaluation"])
 app.include_router(executions_router, prefix="/api", tags=["executions"])
 app.include_router(exercises_router, prefix="/api", tags=["exercises"])

@@ -7,6 +7,7 @@ from sqlalchemy import delete, select
 from sqlalchemy.orm import Session
 
 from app.models.knowledge_component import KnowledgeComponent
+from app.models.diagnostic_attempt import DiagnosticAttempt
 from app.models.mastery_event import MasteryEvent
 from app.models.student_mastery import StudentMastery
 from app.models.submission import Submission
@@ -117,6 +118,7 @@ def delete_student_account(db: Session, token: str) -> bool:
         return False
 
     db.execute(delete(MasteryEvent).where(MasteryEvent.student_id == user.student_id))
+    db.execute(delete(DiagnosticAttempt).where(DiagnosticAttempt.student_id == user.student_id))
     db.execute(delete(Submission).where(Submission.student_id == user.student_id))
     db.execute(delete(StudentMastery).where(StudentMastery.student_id == user.student_id))
     db.delete(user)
@@ -153,6 +155,7 @@ def to_student_user(user: User) -> StudentUser:
         name=user.name,
         email=user.username,
         avatarInitials=avatar_initials(user.name),
+        needsDiagnostic=not user.diagnostic_completed,
     )
 
 

@@ -24,7 +24,7 @@ import type {
 
 type LoadState = "idle" | "loading" | "ready" | "error";
 
-export function usePracticeSession() {
+export function usePracticeSession(initialExerciseId?: string) {
   const [session, setSession] = useState<PracticeSession | null>(null);
   const [code, setCode] = useState("");
   const [exerciseHistory, setExerciseHistory] = useState<Exercise[]>([]);
@@ -56,11 +56,14 @@ export function usePracticeSession() {
       setLoadState("loading");
       try {
         const data = await getCurrentPracticeSession();
+        const initialExercise = initialExerciseId && initialExerciseId !== data.exercise.id
+          ? await getExerciseById(initialExerciseId)
+          : data.exercise;
         if (!isMounted) {
           return;
         }
-        setSession(data);
-        setCode(data.exercise.starterCode);
+        setSession({ ...data, exercise: initialExercise });
+        setCode(initialExercise.starterCode);
         setLoadState("ready");
         void refreshLearningAdvice();
       } catch {
@@ -75,7 +78,7 @@ export function usePracticeSession() {
     return () => {
       isMounted = false;
     };
-  }, [refreshLearningAdvice]);
+  }, [initialExerciseId, refreshLearningAdvice]);
 
   const applyResult = useCallback((result: SubmissionResult) => {
     setSession((current) => {

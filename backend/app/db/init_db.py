@@ -29,6 +29,8 @@ def init_db() -> None:
 
 def ensure_exercise_schema() -> None:
     statements = [
+        "ALTER TABLE users ADD COLUMN IF NOT EXISTS diagnostic_completed BOOLEAN NOT NULL DEFAULT true",
+        "ALTER TABLE users ADD COLUMN IF NOT EXISTS diagnostic_completed_at TIMESTAMPTZ",
         "ALTER TABLE knowledge_components ADD COLUMN IF NOT EXISTS short_name VARCHAR(80)",
         "ALTER TABLE exercises ADD COLUMN IF NOT EXISTS type VARCHAR(50) NOT NULL DEFAULT 'coding'",
         "ALTER TABLE exercises ADD COLUMN IF NOT EXISTS estimated_minutes INTEGER NOT NULL DEFAULT 0",
@@ -62,6 +64,7 @@ def seed_users() -> None:
                         role=user_data["role"],
                         password_salt=user_data["password_salt"],
                         password_hash=user_data["password_hash"],
+                        diagnostic_completed=True,
                     )
                 )
                 continue
@@ -72,6 +75,7 @@ def seed_users() -> None:
             user.password_salt = user_data["password_salt"]
             user.password_hash = user_data["password_hash"]
             user.is_active = True
+            user.diagnostic_completed = True
 
         db.commit()
     finally:

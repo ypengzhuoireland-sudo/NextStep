@@ -14,6 +14,7 @@ export interface StudentUser {
   name: string;
   email: string;
   avatarInitials: string;
+  needsDiagnostic: boolean;
 }
 
 export interface StudentAuthResult {

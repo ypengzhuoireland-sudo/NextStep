@@ -1,0 +1,337 @@
+[
+  {
+    "id": "DQ001",
+    "kc_id": "KC001",
+    "kc_name": "Variables and Expressions",
+    "prompt": "What is printed by this code?",
+    "code": "x = 4\ny = x * 2 + 3\nprint(y)",
+    "options": [
+      { "id": "A", "text": "8" },
+      { "id": "B", "text": "10" },
+      { "id": "C", "text": "11" },
+      { "id": "D", "text": "14" }
+    ],
+    "correct_option_id": "C"
+  },
+  {
+    "id": "DQ002",
+    "kc_id": "KC001",
+    "kc_name": "Variables and Expressions",
+    "prompt": "What is the final value of result?",
+    "code": "value = 7\nvalue += 3\nresult = value // 2",
+    "options": [
+      { "id": "A", "text": "3" },
+      { "id": "B", "text": "5" },
+      { "id": "C", "text": "6" },
+      { "id": "D", "text": "10" }
+    ],
+    "correct_option_id": "B"
+  },
+  {
+    "id": "DQ003",
+    "kc_id": "KC002",
+    "kc_name": "Conditionals",
+    "prompt": "What is printed?",
+    "code": "x = 8\nif x > 10:\n    print('A')\nelif x >= 5:\n    print('B')\nelse:\n    print('C')",
+    "options": [
+      { "id": "A", "text": "A" },
+      { "id": "B", "text": "B" },
+      { "id": "C", "text": "C" },
+      { "id": "D", "text": "Nothing" }
+    ],
+    "correct_option_id": "B"
+  },
+  {
+    "id": "DQ004",
+    "kc_id": "KC002",
+    "kc_name": "Conditionals",
+    "prompt": "What is the value of the expression?",
+    "code": "not (3 < 5 and 2 == 2)",
+    "options": [
+      { "id": "A", "text": "True" },
+      { "id": "B", "text": "False" },
+      { "id": "C", "text": "None" },
+      { "id": "D", "text": "It raises an error" }
+    ],
+    "correct_option_id": "B"
+  },
+  {
+    "id": "DQ005",
+    "kc_id": "KC003",
+    "kc_name": "Loops",
+    "prompt": "What is printed?",
+    "code": "total = 0\nfor n in range(1, 5):\n    total += n\nprint(total)",
+    "options": [
+      { "id": "A", "text": "6" },
+      { "id": "B", "text": "10" },
+      { "id": "C", "text": "15" },
+      { "id": "D", "text": "20" }
+    ],
+    "correct_option_id": "B"
+  },
+  {
+    "id": "DQ006",
+    "kc_id": "KC003",
+    "kc_name": "Loops",
+    "prompt": "What is printed after the loop?",
+    "code": "i = 0\nwhile i < 3:\n    i += 1\nprint(i)",
+    "options": [
+      { "id": "A", "text": "0" },
+      { "id": "B", "text": "2" },
+      { "id": "C", "text": "3" },
+      { "id": "D", "text": "The loop never ends" }
+    ],
+    "correct_option_id": "C"
+  },
+  {
+    "id": "DQ007",
+    "kc_id": "KC004",
+    "kc_name": "Functions",
+    "prompt": "What is returned by add(5)?",
+    "code": "def add(a, b=2):\n    return a + b",
+    "options": [
+      { "id": "A", "text": "2" },
+      { "id": "B", "text": "5" },
+      { "id": "C", "text": "7" },
+      { "id": "D", "text": "It raises an error" }
+    ],
+    "correct_option_id": "C"
+  },
+  {
+    "id": "DQ008",
+    "kc_id": "KC004",
+    "kc_name": "Functions",
+    "prompt": "What is printed?",
+    "code": "def change(value):\n    value += 3\n    return value\n\nx = 4\nchange(x)\nprint(x)",
+    "options": [
+      { "id": "A", "text": "3" },
+      { "id": "B", "text": "4" },
+      { "id": "C", "text": "7" },
+      { "id": "D", "text": "None" }
+    ],
+    "correct_option_id": "B"
+  },
+  {
+    "id": "DQ009",
+    "kc_id": "KC005",
+    "kc_name": "Strings",
+    "prompt": "What is the result of this slice?",
+    "code": "'Python'[1:4]",
+    "options": [
+      { "id": "A", "text": "Pyt" },
+      { "id": "B", "text": "yth" },
+      { "id": "C", "text": "ytho" },
+      { "id": "D", "text": "tho" }
+    ],
+    "correct_option_id": "B"
+  },
+  {
+    "id": "DQ010",
+    "kc_id": "KC005",
+    "kc_name": "Strings",
+    "prompt": "What is printed?",
+    "code": "print('banana'.count('an'))",
+    "options": [
+      { "id": "A", "text": "1" },
+      { "id": "B", "text": "2" },
+      { "id": "C", "text": "3" },
+      { "id": "D", "text": "4" }
+    ],
+    "correct_option_id": "B"
+  },
+  {
+    "id": "DQ011",
+    "kc_id": "KC006",
+    "kc_name": "Lists",
+    "prompt": "What is printed?",
+    "code": "numbers = [1, 2, 3]\nnumbers.append(4)\nprint(numbers[-2])",
+    "options": [
+      { "id": "A", "text": "2" },
+      { "id": "B", "text": "3" },
+      { "id": "C", "text": "4" },
+      { "id": "D", "text": "It raises an error" }
+    ],
+    "correct_option_id": "B"
+  },
+  {
+    "id": "DQ012",
+    "kc_id": "KC006",
+    "kc_name": "Lists",
+    "prompt": "What list is created?",
+    "code": "[x * x for x in range(4) if x % 2 == 0]",
+    "options": [
+      { "id": "A", "text": "[0, 2]" },
+      { "id": "B", "text": "[0, 4]" },
+      { "id": "C", "text": "[1, 9]" },
+      { "id": "D", "text": "[0, 1, 4, 9]" }
+    ],
+    "correct_option_id": "B"
+  },
+  {
+    "id": "DQ013",
+    "kc_id": "KC007",
+    "kc_name": "Dictionaries and Sets",
+    "prompt": "What is printed?",
+    "code": "values = {'a': 1}\nvalues['b'] = 2\nprint(values.get('c', 0))",
+    "options": [
+      { "id": "A", "text": "0" },
+      { "id": "B", "text": "1" },
+      { "id": "C", "text": "2" },
+      { "id": "D", "text": "KeyError" }
+    ],
+    "correct_option_id": "A"
+  },
+  {
+    "id": "DQ014",
+    "kc_id": "KC007",
+    "kc_name": "Dictionaries and Sets",
+    "prompt": "What is printed?",
+    "code": "print(len(set([1, 1, 2, 3, 3])))",
+    "options": [
+      { "id": "A", "text": "2" },
+      { "id": "B", "text": "3" },
+      { "id": "C", "text": "4" },
+      { "id": "D", "text": "5" }
+    ],
+    "correct_option_id": "B"
+  },
+  {
+    "id": "DQ015",
+    "kc_id": "KC008",
+    "kc_name": "Nested Data Structures",
+    "prompt": "What is printed?",
+    "code": "records = [{'score': 4}, {'score': 7}]\nprint(records[1]['score'])",
+    "options": [
+      { "id": "A", "text": "1" },
+      { "id": "B", "text": "4" },
+      { "id": "C", "text": "7" },
+      { "id": "D", "text": "score" }
+    ],
+    "correct_option_id": "C"
+  },
+  {
+    "id": "DQ016",
+    "kc_id": "KC008",
+    "kc_name": "Nested Data Structures",
+    "prompt": "What is printed?",
+    "code": "matrix = [[1, 2], [3, 4]]\nprint(sum(row[0] for row in matrix))",
+    "options": [
+      { "id": "A", "text": "3" },
+      { "id": "B", "text": "4" },
+      { "id": "C", "text": "6" },
+      { "id": "D", "text": "10" }
+    ],
+    "correct_option_id": "B"
+  },
+  {
+    "id": "DQ017",
+    "kc_id": "KC009",
+    "kc_name": "Recursion",
+    "prompt": "What is returned by factorial(4)?",
+    "code": "def factorial(n):\n    if n <= 1:\n        return 1\n    return n * factorial(n - 1)",
+    "options": [
+      { "id": "A", "text": "4" },
+      { "id": "B", "text": "10" },
+      { "id": "C", "text": "16" },
+      { "id": "D", "text": "24" }
+    ],
+    "correct_option_id": "D"
+  },
+  {
+    "id": "DQ018",
+    "kc_id": "KC009",
+    "kc_name": "Recursion",
+    "prompt": "What is returned by count_steps(5)?",
+    "code": "def count_steps(n):\n    if n <= 0:\n        return 0\n    return 1 + count_steps(n - 2)",
+    "options": [
+      { "id": "A", "text": "2" },
+      { "id": "B", "text": "3" },
+      { "id": "C", "text": "4" },
+      { "id": "D", "text": "5" }
+    ],
+    "correct_option_id": "B"
+  },
+  {
+    "id": "DQ019",
+    "kc_id": "KC010",
+    "kc_name": "Object-Oriented Programming",
+    "prompt": "What is printed?",
+    "code": "class Counter:\n    def __init__(self):\n        self.value = 0\n    def increment(self):\n        self.value += 1\n\ncounter = Counter()\ncounter.increment()\ncounter.increment()\nprint(counter.value)",
+    "options": [
+      { "id": "A", "text": "0" },
+      { "id": "B", "text": "1" },
+      { "id": "C", "text": "2" },
+      { "id": "D", "text": "None" }
+    ],
+    "correct_option_id": "C"
+  },
+  {
+    "id": "DQ020",
+    "kc_id": "KC010",
+    "kc_name": "Object-Oriented Programming",
+    "prompt": "What is printed?",
+    "code": "class Parent:\n    def speak(self):\n        return 'parent'\n\nclass Child(Parent):\n    pass\n\nprint(Child().speak())",
+    "options": [
+      { "id": "A", "text": "parent" },
+      { "id": "B", "text": "child" },
+      { "id": "C", "text": "None" },
+      { "id": "D", "text": "It raises an error" }
+    ],
+    "correct_option_id": "A"
+  },
+  {
+    "id": "DQ021",
+    "kc_id": "KC011",
+    "kc_name": "Error Handling and Validation",
+    "prompt": "What is printed?",
+    "code": "try:\n    number = int('abc')\n    print(number)\nexcept ValueError:\n    print('invalid')",
+    "options": [
+      { "id": "A", "text": "abc" },
+      { "id": "B", "text": "0" },
+      { "id": "C", "text": "invalid" },
+      { "id": "D", "text": "Nothing" }
+    ],
+    "correct_option_id": "C"
+  },
+  {
+    "id": "DQ022",
+    "kc_id": "KC011",
+    "kc_name": "Error Handling and Validation",
+    "prompt": "Which input causes validate_age to raise ValueError?",
+    "code": "def validate_age(age):\n    if age < 0:\n        raise ValueError('age must be non-negative')\n    return age",
+    "options": [
+      { "id": "A", "text": "-1" },
+      { "id": "B", "text": "0" },
+      { "id": "C", "text": "18" },
+      { "id": "D", "text": "100" }
+    ],
+    "correct_option_id": "A"
+  },
+  {
+    "id": "DQ023",
+    "kc_id": "KC012",
+    "kc_name": "Problem Solving and Algorithms",
+    "prompt": "What is the worst-case time complexity of searching an unsorted list one item at a time?",
+    "options": [
+      { "id": "A", "text": "O(1)" },
+      { "id": "B", "text": "O(log n)" },
+      { "id": "C", "text": "O(n)" },
+      { "id": "D", "text": "O(n^2)" }
+    ],
+    "correct_option_id": "C"
+  },
+  {
+    "id": "DQ024",
+    "kc_id": "KC012",
+    "kc_name": "Problem Solving and Algorithms",
+    "prompt": "What is printed by this order-preserving duplicate removal algorithm?",
+    "code": "values = [3, 1, 3, 2, 1]\nseen = set()\nresult = []\nfor value in values:\n    if value not in seen:\n        seen.add(value)\n        result.append(value)\nprint(result)",
+    "options": [
+      { "id": "A", "text": "[1, 2, 3]" },
+      { "id": "B", "text": "[3, 1, 2]" },
+      { "id": "C", "text": "[3, 1, 3, 2, 1]" },
+      { "id": "D", "text": "[3, 2, 1]" }
+    ],
+    "correct_option_id": "B"
+  }
+]

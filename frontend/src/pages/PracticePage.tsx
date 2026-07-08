@@ -16,12 +16,13 @@ import { usePracticeSession } from "@/hooks/usePracticeSession";
 
 interface PracticePageProps {
   onOpenDashboard?: () => void;
+  initialExerciseId?: string;
 }
 
 // Keep the MVP AI assistant visible without requiring a local .env flag.
 const SHOW_AI_ASSISTANT = true;
 
-export function PracticePage({ onOpenDashboard }: PracticePageProps) {
+export function PracticePage({ onOpenDashboard, initialExerciseId }: PracticePageProps) {
   const {
     session,
     code,
@@ -42,7 +43,7 @@ export function PracticePage({ onOpenDashboard }: PracticePageProps) {
     handleOpenExercise,
     handlePreviousExercise,
     handleNextExercise
-  } = usePracticeSession();
+  } = usePracticeSession(initialExerciseId);
 
   if (loadState === "loading" || loadState === "idle") {
     return <LoadingScreen />;
