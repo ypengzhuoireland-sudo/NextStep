@@ -31,6 +31,55 @@ const INITIAL_MESSAGE: ChatMessage = {
   text: "Tell me what topic or difficulty you want to practise."
 };
 
+/** Render assistant text with readable paragraphs and fenced code blocks. */
+function renderAssistantMessage(text: string) {
+  const parts: Array<{ type: "text" | "code"; value: string }> = [];
+  const codeBlockPattern = /```(?:\w+)?\n?([\s\S]*?)```/g;
+  let lastIndex = 0;
+  let match: RegExpExecArray | null;
+
+  while ((match = codeBlockPattern.exec(text)) !== null) {
+    if (match.index > lastIndex) {
+      parts.push({
+        type: "text",
+        value: text.slice(lastIndex, match.index).trim()
+      });
+    }
+    parts.push({
+      type: "code",
+      value: match[1].trim()
+    });
+    lastIndex = codeBlockPattern.lastIndex;
+  }
+
+  if (lastIndex < text.length) {
+    parts.push({
+      type: "text",
+      value: text.slice(lastIndex).trim()
+    });
+  }
+
+  return parts
+    .filter((part) => part.value)
+    .map((part, index) =>
+      part.type === "code" ? (
+        <pre
+          key={`assistant-code-${index}`}
+          className="mt-2 max-h-56 overflow-x-auto rounded-md border border-cyan-200/10 bg-slate-950/80 p-3 text-xs leading-5 text-cyan-50"
+        >
+          <code className="font-mono">{part.value}</code>
+        </pre>
+      ) : (
+        <p
+          key={`assistant-text-${index}`}
+          className="whitespace-pre-line"
+        >
+          {part.value}
+        </p>
+      )
+    );
+}
+
 export function StudyAssistantDialog({
   currentExerciseId,
   disabled = false,
@@ -187,10 +236,12 @@ export function StudyAssistantDialog({
                 className={
                   message.role === "student"
                     ? "ml-auto max-w-[85%] rounded-lg bg-primary px-3 py-2 text-sm leading-6 text-white"
-                    : "max-w-[88%] rounded-lg border border-white/10 bg-white/[0.05] px-3 py-2 text-sm leading-6 text-slate-200"
+                    : "max-w-[95%] space-y-2 rounded-lg border border-white/10 bg-white/[0.05] px-3 py-2 text-sm leading-6 text-slate-200"
                 }
               >
-                {message.text}
+                {message.role === "assistant"
+                  ? renderAssistantMessage(message.text)
+                  : message.text}
               </div>
             ))}
 
