@@ -38,6 +38,7 @@ export async function registerUser(payload: AuthPayload) {
     id: `usr_${Date.now()}`,
     name: payload.name?.trim() || "Demo Teacher",
     email,
+    role: "teacher",
     password: payload.password
   };
 
@@ -89,7 +90,8 @@ function publicUser(user: LocalAccount): AuthUser {
   return {
     id: user.id,
     name: user.name,
-    email: user.email
+    email: user.email,
+    role: user.role
   };
 }
 
@@ -97,6 +99,7 @@ const demoUser: LocalAccount = {
   id: "usr_demo_teacher",
   name: "Demo Teacher",
   email: "teacher@nextstep.test",
+  role: "teacher",
   password: "demo1234"
 };
 

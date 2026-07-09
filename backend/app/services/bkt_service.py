@@ -26,6 +26,7 @@ class BKTParameters:
 
 
 DEFAULT_BKT_PARAMETERS = BKTParameters()
+INITIAL_STUDENT_MASTERY = 0.0
 
 
 def update_knowledge_state(

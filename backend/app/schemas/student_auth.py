@@ -7,6 +7,7 @@ class StudentUser(BaseModel):
     email: str
     avatarInitials: str
     needsDiagnostic: bool
+    role: str
 
 
 class StudentLoginRequest(BaseModel):

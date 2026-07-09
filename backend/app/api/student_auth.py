@@ -14,6 +14,7 @@ from app.schemas.student_auth import (
 )
 from app.services.student_auth_service import (
     authenticate_student,
+    authenticate_teacher,
     delete_student_account,
     get_student_from_token,
     logout_student,
@@ -21,6 +22,7 @@ from app.services.student_auth_service import (
 )
 
 router = APIRouter(prefix="/auth/student", tags=["student-auth"])
+teacher_router = APIRouter(prefix="/auth/teacher", tags=["teacher-auth"])
 bearer_scheme = HTTPBearer(auto_error=False)
 
 
@@ -35,6 +37,22 @@ def login_student(
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid email or password",
+        )
+
+    return response
+
+
+@teacher_router.post("/login", response_model=StudentAuthResponse)
+def login_teacher(
+    request: StudentLoginRequest,
+    db: Session = Depends(get_db),
+) -> StudentAuthResponse:
+    response = authenticate_teacher(db, request)
+
+    if response is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid teacher email or password",
         )
 
     return response

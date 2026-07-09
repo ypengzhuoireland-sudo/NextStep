@@ -14,7 +14,7 @@ from app.models.mastery_event import MasteryEvent
 from app.models.student_mastery import StudentMastery
 from app.models.submission import Submission
 from app.models.user import User
-from app.services.bkt_service import DEFAULT_BKT_PARAMETERS
+from app.services.bkt_service import DEFAULT_BKT_PARAMETERS, INITIAL_STUDENT_MASTERY
 
 USERS_PATH = Path(__file__).resolve().parents[2] / "seeds" / "users_seed.json"
 EXERCISE_BANK_PATH = Path(__file__).resolve().parents[2] / "seeds" / "p09_python_exercise_bank.json"
@@ -221,7 +221,10 @@ def upsert_exercises(db: Session, exercise_items: list[dict[str, Any]]) -> None:
 
 def seed_default_mastery(db: Session, kc_ids: set[str]) -> None:
     student_ids = db.scalars(
-        select(User.student_id).where(User.is_active.is_(True)).order_by(User.student_id)
+        select(User.student_id)
+        .where(User.is_active.is_(True))
+        .where(User.role == "student")
+        .order_by(User.student_id)
     ).all()
 
     for student_id in student_ids:
@@ -233,6 +236,6 @@ def seed_default_mastery(db: Session, kc_ids: set[str]) -> None:
                     StudentMastery(
                         student_id=student_id,
                         kc_id=kc_id,
-                        mastery=DEFAULT_BKT_PARAMETERS.prior,
+                        mastery=INITIAL_STUDENT_MASTERY,
                     )
                 )

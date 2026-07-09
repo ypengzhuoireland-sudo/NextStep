@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
-import { getStudentMe } from "@/api/studentAuth";
+import { getStudentMe, logoutStudent } from "@/api/studentAuth";
 import { LoadingScreen } from "@/components/common/LoadingScreen";
-import { DashboardPage } from "@/pages/DashboardPage";
 import { DiagnosticTestPage } from "@/pages/DiagnosticTestPage";
 import { PracticePage } from "@/pages/PracticePage";
+import { StudentDashboardPage } from "@/pages/StudentDashboardPage";
 import { StudentLoginPage } from "@/pages/StudentLoginPage";
+import { TeacherDashboardPage } from "@/pages/TeacherDashboardPage";
 import type { StudentUser } from "@/types/auth";
 
 export default function App() {
@@ -20,6 +21,9 @@ export default function App() {
       const user = await getStudentMe();
       if (mounted) {
         setStudent(user);
+        if (user?.role === "teacher") {
+          setView("dashboard");
+        }
         setChecking(false);
       }
     }
@@ -31,15 +35,28 @@ export default function App() {
     };
   }, []);
 
+  async function handleLogout() {
+    await logoutStudent();
+    setStudent(null);
+    setView("practice");
+  }
+
   if (checking) {
     return <LoadingScreen />;
   }
 
   if (!student) {
-    return <StudentLoginPage onLogin={setStudent} />;
+    return (
+      <StudentLoginPage
+        onLogin={(user) => {
+          setStudent(user);
+          setView(user.role === "teacher" ? "dashboard" : "practice");
+        }}
+      />
+    );
   }
 
-  if (student.needsDiagnostic) {
+  if (student.role === "student" && student.needsDiagnostic) {
     return (
       <DiagnosticTestPage
         onComplete={(exerciseId) => {
@@ -52,13 +69,20 @@ export default function App() {
   }
 
   if (view === "dashboard") {
-    return <DashboardPage onOpenPractice={() => setView("practice")} />;
+    if (student.role === "teacher") {
+      return <TeacherDashboardPage onLogout={handleLogout} />;
+    }
+
+    return <StudentDashboardPage onOpenPractice={() => setView("practice")} onLogout={handleLogout} />;
   }
 
   return (
     <PracticePage
       initialExerciseId={initialExerciseId}
       onOpenDashboard={() => setView("dashboard")}
+      onLogout={handleLogout}
+      dashboardLabel={student.role === "teacher" ? "Teacher Dashboard" : "Student Dashboard"}
+      learnerLabel={student.name}
     />
   );
 }

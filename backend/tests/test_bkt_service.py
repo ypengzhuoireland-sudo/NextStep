@@ -1,9 +1,16 @@
 import unittest
 
-from app.services.bkt_service import BKTParameters, update_knowledge_state
+from app.services.bkt_service import (
+    BKTParameters,
+    INITIAL_STUDENT_MASTERY,
+    update_knowledge_state,
+)
 
 
 class BKTServiceTest(unittest.TestCase):
+    def test_new_student_initial_mastery_starts_at_zero(self):
+        self.assertEqual(INITIAL_STUDENT_MASTERY, 0.0)
+
     def test_correct_answer_uses_bayesian_knowledge_tracing_formula(self):
         params = BKTParameters(prior=0.2, learn=0.15, guess=0.2, slip=0.1)
 

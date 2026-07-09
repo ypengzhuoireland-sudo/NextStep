@@ -26,7 +26,11 @@ from app.services.execution_service import (
     submit_to_judge0,
 )
 from app.services.mastery_service import get_student_mastery_profile
-from app.services.bkt_service import get_bkt_parameters_for_kc, update_knowledge_state
+from app.services.bkt_service import (
+    INITIAL_STUDENT_MASTERY,
+    get_bkt_parameters_for_kc,
+    update_knowledge_state,
+)
 from app.services.test_harness import (
     build_python_test_runner_code,
     calculate_score as calculate_runner_score,
@@ -154,7 +158,11 @@ def update_mastery_for_submission(
         mastery = db.get(StudentMastery, (student_id, kc_id))
 
         if mastery is None:
-            mastery = StudentMastery(student_id=student_id, kc_id=kc_id, mastery=params.prior)
+            mastery = StudentMastery(
+                student_id=student_id,
+                kc_id=kc_id,
+                mastery=INITIAL_STUDENT_MASTERY,
+            )
             db.add(mastery)
 
         before = mastery.mastery

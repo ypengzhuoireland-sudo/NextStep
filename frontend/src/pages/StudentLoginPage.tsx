@@ -1,14 +1,14 @@
 import { FormEvent, useState } from "react";
 import { motion } from "framer-motion";
 import { BrainCircuit, Loader2, LockKeyhole, Mail, Sparkles } from "lucide-react";
-import { loginStudent, registerStudent } from "@/api/studentAuth";
+import { loginStudent, loginTeacher, registerStudent } from "@/api/studentAuth";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { StudentUser } from "@/types/auth";
 import { cn } from "@/lib/utils";
 
-type Mode = "login" | "register";
+type Mode = "login" | "register" | "teacher";
 
 interface StudentLoginPageProps {
   onLogin: (user: StudentUser) => void;
@@ -31,6 +31,8 @@ export function StudentLoginPage({ onLogin }: StudentLoginPageProps) {
       const res =
         mode === "login"
           ? await loginStudent({ email, password })
+          : mode === "teacher"
+            ? await loginTeacher({ email, password })
           : await registerStudent({ name, email, password });
       onLogin(res.user);
     } catch (error) {
@@ -66,12 +68,15 @@ export function StudentLoginPage({ onLogin }: StudentLoginPageProps) {
           </CardHeader>
 
           <CardContent className="p-4">
-            <div className="mb-4 grid grid-cols-2 gap-2 rounded-lg border border-white/10 bg-white/[0.035] p-1">
+            <div className="mb-4 grid grid-cols-3 gap-2 rounded-lg border border-white/10 bg-white/[0.035] p-1">
               <button type="button" onClick={() => setMode("login")} className={tabClass(mode === "login")}>
                 Login
               </button>
               <button type="button" onClick={() => setMode("register")} className={tabClass(mode === "register")}>
                 Register
+              </button>
+              <button type="button" onClick={() => setMode("teacher")} className={tabClass(mode === "teacher")}>
+                Teacher
               </button>
             </div>
 
@@ -91,7 +96,9 @@ export function StudentLoginPage({ onLogin }: StudentLoginPageProps) {
               ) : null}
 
               <label className="block">
-                <span className="mb-1.5 block text-xs font-medium uppercase text-slate-500">Student Email</span>
+                <span className="mb-1.5 block text-xs font-medium uppercase text-slate-500">
+                  {mode === "teacher" ? "Teacher Email" : "Student Email"}
+                </span>
                 <div className="flex items-center gap-2 rounded-lg border border-white/10 bg-slate-950/35 px-3">
                   <Mail className="h-4 w-4 text-slate-500" />
                   <input
@@ -99,7 +106,7 @@ export function StudentLoginPage({ onLogin }: StudentLoginPageProps) {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     className="h-10 min-w-0 flex-1 bg-transparent text-sm text-white outline-none placeholder:text-slate-600"
-                    placeholder="student@nextstep.test"
+                    placeholder={mode === "teacher" ? "teacher@nextstep.test" : "student@nextstep.test"}
                   />
                 </div>
               </label>
@@ -126,12 +133,19 @@ export function StudentLoginPage({ onLogin }: StudentLoginPageProps) {
 
               <Button className="mt-2 w-full" disabled={busy || !email || !password}>
                 {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-                {mode === "login" ? "Login to Practice" : "Create Student Account"}
+                {mode === "register"
+                  ? "Create Student Account"
+                  : mode === "teacher"
+                    ? "Login to Teacher Dashboard"
+                    : "Login to Practice"}
               </Button>
             </form>
 
             <div className="mt-4 rounded-lg border border-white/10 bg-white/[0.035] px-3 py-2 text-xs leading-5 text-slate-400">
               Demo: <span className="font-mono text-slate-200">student@nextstep.test</span> /{" "}
+              <span className="font-mono text-slate-200">demo1234</span>
+              <br />
+              Teacher: <span className="font-mono text-slate-200">teacher@nextstep.test</span> /{" "}
               <span className="font-mono text-slate-200">demo1234</span>
             </div>
           </CardContent>

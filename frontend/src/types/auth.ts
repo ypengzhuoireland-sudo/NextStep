@@ -2,6 +2,7 @@ export interface AuthUser {
   id: string;
   name: string;
   email: string;
+  role: "student" | "teacher";
 }
 
 export interface AuthResult {
@@ -15,6 +16,7 @@ export interface StudentUser {
   email: string;
   avatarInitials: string;
   needsDiagnostic: boolean;
+  role: "student" | "teacher";
 }
 
 export interface StudentAuthResult {

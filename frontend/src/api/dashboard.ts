@@ -1,6 +1,6 @@
 import { apiRequest } from "@/api/client";
 import { getMockDashboard, USE_MOCK_API, wait } from "@/api/mock";
-import type { ClassDashboardSummary } from "@/types/tutor";
+import type { ClassDashboardSummary, MasteryState, StudentDashboardSummary } from "@/types/tutor";
 
 interface ClassDashboardApiResponse {
   class_id: string;
@@ -48,6 +48,75 @@ interface ClassDashboardApiResponse {
     runtime_ms: number;
     created_at: string;
   }>;
+}
+
+interface StudentDashboardApiResponse {
+  studentId: string;
+  studentName: string;
+  activeGoal: string;
+  backendStatus: string;
+  masteryAverage: number;
+  recommendedExerciseId: string;
+  recommendedExercise: StudentDashboardSummary["recommendedExercise"];
+  masteryProfile: Array<{
+    id: string;
+    code: string;
+    name: string;
+    shortName?: string | null;
+    description: string;
+    mastery: number;
+    trend: number;
+    state: StudentDashboardSummary["masteryProfile"][number]["state"];
+  }>;
+  learningPath: Array<{
+    id: string;
+    code: string;
+    name: string;
+    shortName?: string | null;
+    description: string;
+    mastery: number;
+    trend: number;
+    state: StudentDashboardSummary["learningPath"][number]["state"];
+  }>;
+}
+
+export async function getStudentDashboardSummary(): Promise<StudentDashboardSummary> {
+  if (USE_MOCK_API) {
+    await wait(420);
+    const dashboard = getMockDashboard();
+    const studentId = dashboard.heatmap[0]?.studentId ?? "stu_mock";
+    const profile = dashboard.heatmap
+      .filter((item) => item.studentId === studentId)
+      .map((item) => ({
+        code: item.kcCode,
+        name: item.kcName,
+        shortName: item.kcShortName,
+        description: item.kcName,
+        mastery: item.mastery,
+        trend: 0,
+        state: (item.mastery >= 0.75
+          ? "mastered"
+          : item.mastery >= 0.5
+            ? "almost_there"
+            : "needs_practice") as MasteryState
+      }));
+
+    return {
+      studentId,
+      studentName: dashboard.heatmap[0]?.displayName ?? "Mock Student",
+      activeGoal: "Practice weak Python concepts",
+      backendStatus: "mock",
+      masteryAverage: profile.length
+        ? profile.reduce((sum, item) => sum + item.mastery, 0) / profile.length
+        : 0,
+      recommendedExerciseId: "",
+      recommendedExercise: null,
+      masteryProfile: profile,
+      learningPath: [...profile].sort((a, b) => a.mastery - b.mastery).slice(0, 5)
+    };
+  }
+
+  return apiRequest<StudentDashboardApiResponse>("/dashboard/student");
 }
 
 export async function getClassDashboardSummary(

@@ -14,6 +14,7 @@ from app.api.mastery import router as mastery_router
 from app.api.practice import router as practice_router
 from app.api.recommendations import router as recommendations_router
 from app.api.student_auth import router as student_auth_router
+from app.api.student_auth import teacher_router
 from app.api.submissions import router as submissions_router
 
 app = FastAPI()
@@ -32,6 +33,7 @@ app.add_middleware(
 )
 
 app.include_router(student_auth_router, prefix="/api")
+app.include_router(teacher_router, prefix="/api")
 app.include_router(assistant_router, prefix="/api")
 app.include_router(dashboard_router, prefix="/api", tags=["dashboard"])
 app.include_router(diagnostic_router, prefix="/api")

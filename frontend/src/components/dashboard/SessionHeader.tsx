@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { BrainCircuit, ChevronRight, Github, LayoutDashboard } from "lucide-react";
+import { BrainCircuit, Github, LayoutDashboard, LogOut } from "lucide-react";
 import { ExperimentBadge } from "@/components/dashboard/ExperimentBadge";
 import { Button } from "@/components/ui/button";
 import type { PracticeSession } from "@/types/tutor";
@@ -7,9 +7,18 @@ import type { PracticeSession } from "@/types/tutor";
 interface SessionHeaderProps {
   session: PracticeSession;
   onOpenDashboard?: () => void;
+  onLogout?: () => void;
+  dashboardLabel?: string;
+  learnerLabel?: string;
 }
 
-export function SessionHeader({ session, onOpenDashboard }: SessionHeaderProps) {
+export function SessionHeader({
+  session,
+  onOpenDashboard,
+  onLogout,
+  dashboardLabel = "Dashboard",
+  learnerLabel = "Python Beginner"
+}: SessionHeaderProps) {
   return (
     <motion.header
       initial={{ opacity: 0, y: -10 }}
@@ -25,11 +34,7 @@ export function SessionHeader({ session, onOpenDashboard }: SessionHeaderProps) 
             <h1 className="text-lg font-semibold text-white">NextStep AI Tutor</h1>
             <ExperimentBadge group={session.experimentGroup} />
           </div>
-          <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-slate-500">
-            <span>{session.studentId}</span>
-            <ChevronRight className="h-3.5 w-3.5" />
-            <span>{session.sessionId}</span>
-          </div>
+          <p className="mt-1 text-xs text-slate-500">{learnerLabel}</p>
         </div>
       </div>
 
@@ -37,12 +42,18 @@ export function SessionHeader({ session, onOpenDashboard }: SessionHeaderProps) 
         {onOpenDashboard ? (
           <Button variant="secondary" onClick={onOpenDashboard}>
             <LayoutDashboard className="h-4 w-4" />
-            Teacher Dashboard
+            {dashboardLabel}
           </Button>
         ) : null}
         <Button variant="ghost" size="icon" aria-label="Repository">
           <Github className="h-4 w-4" />
         </Button>
+        {onLogout ? (
+          <Button variant="ghost" onClick={onLogout}>
+            <LogOut className="h-4 w-4" />
+            Logout
+          </Button>
+        ) : null}
       </div>
     </motion.header>
   );

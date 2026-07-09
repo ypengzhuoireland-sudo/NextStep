@@ -18,8 +18,10 @@ bearer_scheme = HTTPBearer(auto_error=False)
 @router.get("/dashboard/class-summary", response_model=ClassDashboardSummary)
 def class_dashboard_summary(
     class_id: str = Query(default="demo-python-101"),
+    auth_credentials: HTTPAuthorizationCredentials | None = Depends(bearer_scheme),
     db: Session = Depends(get_db),
 ) -> ClassDashboardSummary:
+    get_current_dashboard_user(auth_credentials, db, required_role="teacher")
     return build_class_dashboard_summary(db, class_id)
 
 
@@ -29,7 +31,7 @@ def dashboard(
     auth_credentials: HTTPAuthorizationCredentials | None = Depends(bearer_scheme),
     db: Session = Depends(get_db),
 ) -> DashboardResponse:
-    current_user = get_current_dashboard_user(auth_credentials, db)
+    current_user = get_current_dashboard_user(auth_credentials, db, required_role="student")
     return build_dashboard_response(db, current_user)
 
 
@@ -37,6 +39,7 @@ def dashboard(
 def get_current_dashboard_user(
     auth_credentials: HTTPAuthorizationCredentials | None,
     db: Session,
+    required_role: str | None = None,
 ) -> UserProfile:
     if auth_credentials is None:
         raise_unauthorized("Missing Authorization header")
@@ -45,6 +48,9 @@ def get_current_dashboard_user(
 
     if current_user is None:
         raise_unauthorized("Invalid or expired access token")
+
+    if required_role is not None and current_user.role != required_role:
+        raise_forbidden(f"{required_role.title()} role required")
 
     return current_user
 
@@ -55,4 +61,12 @@ def raise_unauthorized(detail: str) -> NoReturn:
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail=detail,
         headers={"WWW-Authenticate": "Bearer"},
+    )
+
+
+# Raise a standard 403 response when a logged-in user has the wrong role.
+def raise_forbidden(detail: str) -> NoReturn:
+    raise HTTPException(
+        status_code=status.HTTP_403_FORBIDDEN,
+        detail=detail,
     )

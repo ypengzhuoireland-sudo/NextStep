@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from collections.abc import Iterable
 
 from sqlalchemy import select
@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session
 from app.models.exercise import Exercise as ExerciseModel
 from app.models.knowledge_component import KnowledgeComponent as KnowledgeComponentModel
 from app.models.student_mastery import StudentMastery
+from app.models.submission import Submission
 from app.models.user import User
 from app.schemas.dashboard import (
     ClassDashboardSummary,
@@ -15,6 +16,7 @@ from app.schemas.dashboard import (
     DashboardTotals,
     Exercise,
     KnowledgeComponent,
+    RecentSubmission,
     RiskStudent,
     WeakKcSummary,
 )
@@ -100,6 +102,7 @@ def build_class_dashboard_summary(db: Session, class_id: str) -> ClassDashboardS
     users = db.scalars(
         select(User)
         .where(User.is_active.is_(True))
+        .where(User.role == "student")
         .order_by(User.student_id)
     ).all()
     kcs = db.scalars(select(KnowledgeComponentModel).order_by(KnowledgeComponentModel.id)).all()
@@ -130,6 +133,8 @@ def build_class_dashboard_summary(db: Session, class_id: str) -> ClassDashboardS
     }
     risk_students = build_risk_students(users, kcs, mastery_by_student_kc, student_averages)
     weak_kcs = build_weak_kcs(users, kcs, mastery_by_student_kc)
+    recent_submissions = build_recent_submissions(db)
+    submissions_7d = count_submissions_since(db, datetime.now(timezone.utc) - timedelta(days=7))
     average_mastery = average(cell.mastery for cell in heatmap)
 
     updated_at = datetime.now(timezone.utc).isoformat()
@@ -140,15 +145,49 @@ def build_class_dashboard_summary(db: Session, class_id: str) -> ClassDashboardS
         totals=DashboardTotals(
             students=len(users),
             average_mastery=round(average_mastery, 2),
-            submissions_7d=0,
+            submissions_7d=submissions_7d,
             hint_requests_7d=0,
             at_risk_count=len(risk_students),
         ),
         heatmap=heatmap,
         risk_students=risk_students,
         weak_kcs=weak_kcs,
-        recent_submissions=[],
+        recent_submissions=recent_submissions,
     )
+
+
+def count_submissions_since(db: Session, since: datetime) -> int:
+    rows = db.scalars(select(Submission.created_at)).all()
+    threshold = normalise_datetime(since)
+
+    return sum(1 for created_at in rows if normalise_datetime(created_at) >= threshold)
+
+
+def build_recent_submissions(db: Session, limit: int = 10) -> list[RecentSubmission]:
+    rows = db.execute(
+        select(Submission, User.name, ExerciseModel.title, ExerciseModel.kc_id)
+        .join(User, User.student_id == Submission.student_id)
+        .join(ExerciseModel, ExerciseModel.id == Submission.exercise_id)
+        .where(User.role == "student")
+        .order_by(Submission.created_at.desc(), Submission.id.desc())
+        .limit(limit)
+    ).all()
+
+    return [
+        RecentSubmission(
+            id=str(submission.id),
+            student_id=submission.student_id,
+            display_name=display_name,
+            exercise_title=exercise_title,
+            kc_code=kc_code,
+            status=submission_status(submission),
+            passed_count=count_passed_tests(submission.test_results),
+            total_count=len(submission.test_results or []),
+            runtime_ms=0,
+            created_at=format_submission_time(submission.created_at),
+        )
+        for submission, display_name, exercise_title, kc_code in rows
+    ]
 
 
 def build_risk_students(
@@ -219,3 +258,29 @@ def average(values: Iterable[float]) -> float:
         return 0.0
 
     return sum(items) / len(items)
+
+
+def count_passed_tests(test_results: list[dict] | None) -> int:
+    return sum(1 for result in test_results or [] if result.get("passed") is True)
+
+
+def submission_status(submission: Submission) -> str:
+    if submission.passed:
+        return "passed"
+
+    if submission.status.lower() in {"error", "runtime error", "compilation error"}:
+        return "error"
+
+    return "failed"
+
+
+def format_submission_time(created_at: datetime) -> str:
+    normalised = normalise_datetime(created_at)
+    return normalised.strftime("%d %b %H:%M")
+
+
+def normalise_datetime(value: datetime) -> datetime:
+    if value.tzinfo is None:
+        return value.replace(tzinfo=timezone.utc)
+
+    return value.astimezone(timezone.utc)

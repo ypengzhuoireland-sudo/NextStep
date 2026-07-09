@@ -17,12 +17,21 @@ import { usePracticeSession } from "@/hooks/usePracticeSession";
 interface PracticePageProps {
   onOpenDashboard?: () => void;
   initialExerciseId?: string;
+  onLogout?: () => void;
+  dashboardLabel?: string;
+  learnerLabel?: string;
 }
 
 // Keep the MVP AI assistant visible without requiring a local .env flag.
 const SHOW_AI_ASSISTANT = true;
 
-export function PracticePage({ onOpenDashboard, initialExerciseId }: PracticePageProps) {
+export function PracticePage({
+  onOpenDashboard,
+  initialExerciseId,
+  onLogout,
+  dashboardLabel,
+  learnerLabel
+}: PracticePageProps) {
   const {
     session,
     code,
@@ -71,7 +80,13 @@ export function PracticePage({ onOpenDashboard, initialExerciseId }: PracticePag
   return (
     <main className="soft-grid min-h-screen overflow-x-hidden p-3 sm:p-5">
       <div className="mx-auto flex max-w-[1680px] flex-col gap-4">
-        <SessionHeader session={session} onOpenDashboard={onOpenDashboard} />
+        <SessionHeader
+          session={session}
+          onOpenDashboard={onOpenDashboard}
+          onLogout={onLogout}
+          dashboardLabel={dashboardLabel}
+          learnerLabel={learnerLabel}
+        />
 
         <motion.section
           initial={{ opacity: 0, y: 14 }}

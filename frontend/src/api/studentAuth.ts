@@ -31,6 +31,24 @@ export async function loginStudent(
   return result;
 }
 
+export async function loginTeacher(
+  args: LoginArgs
+): Promise<StudentAuthResult> {
+  const result = await apiRequest<StudentAuthResult>(
+    "/auth/teacher/login",
+    {
+      method: "POST",
+      body: JSON.stringify({
+        email: args.email.trim().toLowerCase(),
+        password: args.password
+      })
+    }
+  );
+
+  saveSession(result);
+  return result;
+}
+
 export async function registerStudent(
   args: LoginArgs
 ): Promise<StudentAuthResult> {

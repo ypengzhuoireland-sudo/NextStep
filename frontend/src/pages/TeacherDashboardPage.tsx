@@ -4,11 +4,11 @@ import {
   Activity,
   AlertTriangle,
   ArrowDownRight,
-  ArrowLeft,
   ArrowUpRight,
   BrainCircuit,
   Clock3,
   GraduationCap,
+  LogOut,
   Loader2,
   MessageSquareText,
   UsersRound
@@ -24,11 +24,11 @@ import { formatPercent, heatmapColor } from "@/utils/formatters";
 
 type DashboardLoadState = "idle" | "loading" | "ready" | "error";
 
-interface DashboardPageProps {
-  onOpenPractice?: () => void;
+interface TeacherDashboardPageProps {
+  onLogout?: () => void;
 }
 
-export function DashboardPage({ onOpenPractice }: DashboardPageProps) {
+export function TeacherDashboardPage({ onLogout }: TeacherDashboardPageProps) {
   const [summary, setSummary] = useState<ClassDashboardSummary | null>(null);
   const [loadState, setLoadState] = useState<DashboardLoadState>("idle");
 
@@ -129,16 +129,16 @@ export function DashboardPage({ onOpenPractice }: DashboardPageProps) {
             <div>
               <div className="flex flex-wrap items-center gap-2">
                 <h1 className="text-lg font-semibold text-white">Teacher Dashboard</h1>
-                <Badge variant="blue">{summary.classId}</Badge>
+                <Badge variant="blue">{formatClassLabel(summary.classId)}</Badge>
               </div>
-              <p className="mt-1 text-xs text-slate-500">Updated {summary.updatedAt}</p>
+              <p className="mt-1 text-xs text-slate-500">Last updated: {formatDashboardTime(summary.updatedAt)}</p>
             </div>
           </div>
 
-          {onOpenPractice ? (
-            <Button variant="secondary" onClick={onOpenPractice}>
-              <ArrowLeft className="h-4 w-4" />
-              Student Practice
+          {onLogout ? (
+            <Button variant="secondary" onClick={onLogout}>
+              <LogOut className="h-4 w-4" />
+              Logout
             </Button>
           ) : null}
         </motion.header>
@@ -282,35 +282,44 @@ export function DashboardPage({ onOpenPractice }: DashboardPageProps) {
           <Card>
             <CardHeader className="border-b border-white/10">
               <CardTitle>Recent Submissions</CardTitle>
-              <Badge variant="default">live mock</Badge>
+              <Badge variant="default">from database</Badge>
             </CardHeader>
             <CardContent className="p-0">
-              <div className="divide-y divide-white/10">
-                {summary.recentSubmissions.map((submission) => (
-                  <div
-                    key={submission.id}
-                    className="grid gap-3 px-4 py-3 md:grid-cols-[1fr_160px_120px_80px]"
-                  >
-                    <div className="min-w-0">
-                      <div className="truncate text-sm font-medium text-white">{submission.exerciseTitle}</div>
-                      <div className="mt-1 truncate text-xs text-slate-500">
-                        {submission.displayName} / {submission.kcCode}
+              {summary.recentSubmissions.length > 0 ? (
+                <div className="divide-y divide-white/10">
+                  {summary.recentSubmissions.map((submission) => (
+                    <div
+                      key={submission.id}
+                      className="grid gap-3 px-4 py-3 md:grid-cols-[1fr_160px_120px_80px]"
+                    >
+                      <div className="min-w-0">
+                        <div className="truncate text-sm font-medium text-white">{submission.exerciseTitle}</div>
+                        <div className="mt-1 truncate text-xs text-slate-500">
+                          Submitted by {submission.displayName}
+                        </div>
+                        <div className="mt-0.5 truncate text-[11px] text-slate-600">
+                          {submission.kcCode}
+                        </div>
+                      </div>
+                      <Badge className="w-fit" variant={statusVariant(submission.status)}>
+                        {submission.status}
+                      </Badge>
+                      <div className="flex items-center gap-2 text-xs text-slate-400">
+                        <Activity className="h-3.5 w-3.5" />
+                        {submission.passedCount}/{submission.totalCount} tests
+                      </div>
+                      <div className="flex items-center gap-2 text-xs text-slate-400">
+                        <Clock3 className="h-3.5 w-3.5" />
+                        {submission.createdAt}
                       </div>
                     </div>
-                    <Badge className="w-fit" variant={statusVariant(submission.status)}>
-                      {submission.status}
-                    </Badge>
-                    <div className="flex items-center gap-2 text-xs text-slate-400">
-                      <Activity className="h-3.5 w-3.5" />
-                      {submission.passedCount}/{submission.totalCount} tests
-                    </div>
-                    <div className="flex items-center gap-2 text-xs text-slate-400">
-                      <Clock3 className="h-3.5 w-3.5" />
-                      {submission.createdAt}
-                    </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="px-4 py-6 text-sm leading-6 text-slate-400">
+                  No saved submissions yet. Run Code only checks code; Submit creates records for this panel.
+                </div>
+              )}
             </CardContent>
           </Card>
         </section>
@@ -339,4 +348,30 @@ function statusVariant(status: ExecutionStatus) {
 
   return "amber";
 }
-/* df */
+
+function formatClassLabel(classId: string) {
+  if (classId === "demo-python-101") {
+    return "Demo Class";
+  }
+
+  return classId
+    .split(/[-_]/)
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ");
+}
+
+function formatDashboardTime(value: string) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return value;
+  }
+
+  return new Intl.DateTimeFormat("en-GB", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit"
+  }).format(date);
+}

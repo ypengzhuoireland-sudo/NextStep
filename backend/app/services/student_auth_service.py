@@ -29,7 +29,7 @@ from app.services.session_service import (
     revoke_access_token,
     verify_password,
 )
-from app.services.bkt_service import DEFAULT_BKT_PARAMETERS
+from app.services.bkt_service import INITIAL_STUDENT_MASTERY
 
 
 def authenticate_student(
@@ -38,7 +38,27 @@ def authenticate_student(
 ) -> StudentAuthResponse | None:
     user = find_active_user_by_username(db, request.email.strip().lower())
 
-    if user is None or not verify_password(request.password, user.password_salt, user.password_hash):
+    if (
+        user is None
+        or user.role != "student"
+        or not verify_password(request.password, user.password_salt, user.password_hash)
+    ):
+        return None
+
+    return to_student_auth_response(user)
+
+
+def authenticate_teacher(
+    db: Session,
+    request: StudentLoginRequest,
+) -> StudentAuthResponse | None:
+    user = find_active_user_by_username(db, request.email.strip().lower())
+
+    if (
+        user is None
+        or user.role != "teacher"
+        or not verify_password(request.password, user.password_salt, user.password_hash)
+    ):
         return None
 
     return to_student_auth_response(user)
@@ -114,7 +134,7 @@ def delete_student_account(db: Session, token: str) -> bool:
 
     user = get_user_model_from_token(db, token)
 
-    if user is None:
+    if user is None or user.role != "student":
         return False
 
     db.execute(delete(MasteryEvent).where(MasteryEvent.student_id == user.student_id))
@@ -156,6 +176,7 @@ def to_student_user(user: User) -> StudentUser:
         email=user.username,
         avatarInitials=avatar_initials(user.name),
         needsDiagnostic=not user.diagnostic_completed,
+        role=user.role,
     )
 
 
@@ -188,6 +209,6 @@ def ensure_student_mastery_rows(db: Session, student_id: str) -> None:
                 StudentMastery(
                     student_id=student_id,
                     kc_id=kc_id,
-                    mastery=DEFAULT_BKT_PARAMETERS.prior,
+                    mastery=INITIAL_STUDENT_MASTERY,
                 )
             )

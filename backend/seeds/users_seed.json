@@ -6,5 +6,13 @@
     "role": "student",
     "password_salt": "bmV4dHN0ZXAtZGVtby1zYWx0",
     "password_hash": "Yvw5wP2f4w-JRLbiIfqoxTO6oEJ7QjDlCDZ8qWYabkA"
+  },
+  {
+    "student_id": "teacher_demo_01",
+    "username": "teacher@nextstep.test",
+    "name": "Demo Teacher",
+    "role": "teacher",
+    "password_salt": "bmV4dHN0ZXAtZGVtby1zYWx0",
+    "password_hash": "Yvw5wP2f4w-JRLbiIfqoxTO6oEJ7QjDlCDZ8qWYabkA"
   }
 ]

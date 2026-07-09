@@ -155,6 +155,26 @@ export interface StudentMasteryProfile {
   items: KnowledgeComponent[];
 }
 
+export interface StudentDashboardSummary {
+  studentId: string;
+  studentName: string;
+  activeGoal: string;
+  backendStatus: string;
+  masteryAverage: number;
+  recommendedExerciseId: string;
+  recommendedExercise: {
+    id: string;
+    title: string;
+    kc: string;
+    primaryKc: string;
+    difficulty: Difficulty;
+    estimatedMinutes: number;
+    status: string;
+  } | null;
+  masteryProfile: KnowledgeComponent[];
+  learningPath: KnowledgeComponent[];
+}
+
 export interface ClassHeatmapCell {
   studentId: string;
   displayName: string;
