@@ -42,6 +42,29 @@ export function StudentLoginPage({ onLogin }: StudentLoginPageProps) {
     }
   }
 
+  function switchMode(nextMode: Mode) {
+    setMode(nextMode);
+    setErr("");
+
+    if (nextMode === "login") {
+      setName("Python Beginner");
+      setEmail("student@nextstep.test");
+      setPassword("demo1234");
+      return;
+    }
+
+    if (nextMode === "teacher") {
+      setName("");
+      setEmail("teacher@nextstep.test");
+      setPassword("demo1234");
+      return;
+    }
+
+    setName("");
+    setEmail("");
+    setPassword("");
+  }
+
   return (
     <main className="soft-grid grid min-h-screen place-items-center p-4">
       <motion.div
@@ -69,13 +92,13 @@ export function StudentLoginPage({ onLogin }: StudentLoginPageProps) {
 
           <CardContent className="p-4">
             <div className="mb-4 grid grid-cols-3 gap-2 rounded-lg border border-white/10 bg-white/[0.035] p-1">
-              <button type="button" onClick={() => setMode("login")} className={tabClass(mode === "login")}>
+              <button type="button" onClick={() => switchMode("login")} className={tabClass(mode === "login")}>
                 Login
               </button>
-              <button type="button" onClick={() => setMode("register")} className={tabClass(mode === "register")}>
+              <button type="button" onClick={() => switchMode("register")} className={tabClass(mode === "register")}>
                 Register
               </button>
-              <button type="button" onClick={() => setMode("teacher")} className={tabClass(mode === "teacher")}>
+              <button type="button" onClick={() => switchMode("teacher")} className={tabClass(mode === "teacher")}>
                 Teacher
               </button>
             </div>
