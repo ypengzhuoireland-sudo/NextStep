@@ -208,6 +208,23 @@ class AssistantServiceTest(unittest.TestCase):
             self.assertIn("2/3 recent submissions passed", response.message)
             self.assertIn("Lists", response.message)
 
+    def test_learning_history_request_returns_student_progress(self):
+        with self.SessionLocal() as db:
+            self.seed_data(db)
+            self.seed_learning_activity(db)
+
+            response = build_assistant_recommendation(
+                db,
+                student_id="s1",
+                request=AssistantChatRequest(message="Analyze my learning history"),
+                intent_result=self.intent(None),
+            )
+
+            self.assertIsNone(response.recommendedExercise)
+            self.assertTrue(response.exactMatch)
+            self.assertIn("Learning Summary", response.message)
+            self.assertIn("Weak areas", response.message)
+
     def test_chinese_learning_summary_request_is_supported(self):
         with self.SessionLocal() as db:
             self.seed_data(db)
@@ -224,6 +241,23 @@ class AssistantServiceTest(unittest.TestCase):
             self.assertTrue(response.exactMatch)
             self.assertIn("Learning Summary", response.message)
             self.assertIn("Next focus", response.message)
+
+    def test_chinese_learning_history_request_is_supported(self):
+        with self.SessionLocal() as db:
+            self.seed_data(db)
+            self.seed_learning_activity(db)
+
+            response = build_assistant_recommendation(
+                db,
+                student_id="s1",
+                request=AssistantChatRequest(message="帮我分析学习历史"),
+                intent_result=self.intent(None),
+            )
+
+            self.assertIsNone(response.recommendedExercise)
+            self.assertTrue(response.exactMatch)
+            self.assertIn("Learning Summary", response.message)
+            self.assertIn("Recent progress", response.message)
 
     def intent(self, kc_code, difficulty=None, use_weakest=False):
         return AssistantIntentResult(
