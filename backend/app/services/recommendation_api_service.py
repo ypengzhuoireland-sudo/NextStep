@@ -19,14 +19,14 @@ from app.services.ai.schemas import (
     RecommendationExplanationResponse,
     RecommendedExercise,
 )
-from app.services.exercise_service import DEFAULT_STUDENT_ID, get_exercise_by_id
+from app.services.exercise_service import get_exercise_by_id
 
 
 def build_next_recommendation(
     db: Session,
     request: NextRecommendationRequest,
+    student_id: str,
 ) -> NextRecommendationResponse:
-    student_id = request.student_id or DEFAULT_STUDENT_ID
     weakest = db.scalars(
         select(StudentMastery)
         .where(StudentMastery.student_id == student_id)

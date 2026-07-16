@@ -1,9 +1,11 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
+from app.api.student_access import require_student_user
 from app.db.session import get_db
 from app.models.exercise import Exercise
 from app.schemas.executions import ExecutionRunRequest, ExecutionRunResponse
+from app.schemas.sessions import UserProfile
 from app.services.execution_service import (
     ExecutionServiceError,
     build_execution_response_from_test_cases,
@@ -21,6 +23,7 @@ router = APIRouter()
 @router.post("/executions/run", response_model=ExecutionRunResponse)
 def run_execution(
     request: ExecutionRunRequest,
+    _current_user: UserProfile = Depends(require_student_user),
     db: Session = Depends(get_db),
 ) -> ExecutionRunResponse:
     try:

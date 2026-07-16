@@ -9,7 +9,6 @@ from app.models.exercise import Exercise, ExerciseKnowledgeComponent
 from app.models.knowledge_component import KnowledgeComponent
 from app.models.student_mastery import StudentMastery
 from app.models.submission import Submission
-from app.models.user import User
 from app.schemas.mastery import StudentMasteryProfile
 from app.schemas.practice import (
     CurrentExerciseResponse,
@@ -36,16 +35,15 @@ from app.services.ai.schemas import (
 from app.services.exercise_service import get_exercise_by_id
 from app.services.mastery_service import get_student_mastery_profile, mastery_state
 
-DEFAULT_STUDENT_ID = "s1"
 DEFAULT_EXPERIMENT_GROUP = "adaptive"
 
 
 def create_practice_session(
     db: Session,
     request: PracticeSessionCreateRequest,
-    current_user: UserProfile | None = None,
+    current_user: UserProfile,
 ) -> PracticeSessionCreateResponse:
-    student_id = resolve_student_id(db, current_user)
+    student_id = resolve_student_id(current_user)
     experiment_group = request.preferred_group or DEFAULT_EXPERIMENT_GROUP
 
     return PracticeSessionCreateResponse(
@@ -58,9 +56,9 @@ def create_practice_session(
 def build_current_exercise_response(
     db: Session,
     session_id: str,
-    current_user: UserProfile | None = None,
+    current_user: UserProfile,
 ) -> CurrentExerciseResponse:
-    student_id = resolve_student_id(db, current_user)
+    student_id = resolve_student_id(current_user)
     mastery_profile = get_student_mastery_profile(db, student_id)
 
     if mastery_profile is None:
@@ -94,7 +92,7 @@ def build_current_exercise_response(
 def build_hint_message(
     db: Session,
     request: HintRequest,
-    current_user: UserProfile | None = None,
+    current_user: UserProfile,
 ) -> HintMessage:
     exercise = db.get(Exercise, request.exercise_id)
 
@@ -102,7 +100,7 @@ def build_hint_message(
         raise ValueError("Exercise not found")
 
     level = min(3, max(1, request.requested_hint_level))
-    student_id = request.student_id or resolve_student_id(db, current_user)
+    student_id = resolve_student_id(current_user)
     session_id = request.session_id or "ses_demo"
     ai_request = build_ai_hint_request(db, request, exercise, student_id, level)
 
@@ -280,18 +278,8 @@ def get_mastery_context(db: Session, student_id: str, exercise: Exercise) -> dic
     return {kc_id: round(mastery, 2) for kc_id, mastery in rows}
 
 
-def resolve_student_id(db: Session, current_user: UserProfile | None = None) -> str:
-    if current_user is not None:
-        return current_user.student_id
-
-    default_user = db.scalar(select(User).where(User.student_id == DEFAULT_STUDENT_ID))
-
-    if default_user is not None:
-        return DEFAULT_STUDENT_ID
-
-    first_user = db.scalar(select(User).where(User.is_active.is_(True)).order_by(User.student_id))
-
-    return first_user.student_id if first_user is not None else DEFAULT_STUDENT_ID
+def resolve_student_id(current_user: UserProfile) -> str:
+    return current_user.student_id
 
 
 def choose_recommended_exercise_id(db: Session, student_id: str) -> str | None:

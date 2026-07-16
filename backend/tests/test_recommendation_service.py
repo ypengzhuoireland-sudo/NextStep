@@ -33,9 +33,9 @@ class RecommendationServiceTest(unittest.TestCase):
             response = build_next_recommendation(
                 db,
                 NextRecommendationRequest(
-                    student_id="s1",
                     current_exercise_id="EX001",
                 ),
+                student_id="s1",
             )
 
             self.assertIsNotNone(response.exercise)
