@@ -1,367 +1,214 @@
 # NextStep API Contract
 
-本文档定义前端需要的 FastAPI REST 接口。当前前端使用 mock 数据实现，后端接入时按以下 JSON 契约返回即可。
+## Purpose
 
-## 基础约定
+This document is the canonical HTTP contract for the NextStep AI Tutor frontend and backend. The backend exposes a FastAPI application under the `/api` prefix. The interactive OpenAPI specification is available at `/docs` when the backend is running.
 
-- Base URL: `/api`
-- Content-Type: `application/json`
-- 时间字段使用 ISO 8601。
-- mastery probability 使用 `0` 到 `1` 的小数。
-- 前端默认学生端为匿名 session，后续可接登录系统。
+## Conventions
 
-## 数据类型
+- Base URL: `http://127.0.0.1:8000/api` in local development.
+- Requests and responses use JSON unless stated otherwise.
+- Bearer-authenticated requests include `Authorization: Bearer <token>`.
+- Timestamps are ISO 8601 strings in UTC.
+- Mastery values are decimal probabilities in the inclusive range `0.0` to `1.0`.
+- Validation errors return `422`; missing or invalid credentials return `401`; insufficient roles return `403`.
 
-### KnowledgeComponent
+## Authentication
+
+| Method | Path | Access | Description |
+| --- | --- | --- | --- |
+| `POST` | `/auth/student/login` | Public | Authenticate a student. |
+| `POST` | `/auth/student/register` | Public | Create and authenticate a student account. |
+| `POST` | `/auth/teacher/login` | Public | Authenticate a teacher. |
+| `GET` | `/auth/student/me` | Authenticated | Return the current user profile. |
+| `POST` | `/auth/student/logout` | Authenticated | Revoke the current access token. |
+| `DELETE` | `/auth/student/me` | Student | Delete the current student account and related learning data. |
+
+Student and teacher login requests use the same payload:
 
 ```json
 {
-  "code": "lists",
-  "name": "Lists",
-  "description": "List creation, indexing, traversal.",
-  "mastery": 0.46,
-  "trend": -0.06,
-  "state": "needs_practice"
+  "email": "student@nextstep.test",
+  "password": "demo1234"
 }
 ```
 
-`state`: `needs_practice | almost_there | mastered`
-
-### Exercise
+Student registration adds a required `name` field. Successful authentication returns:
 
 ```json
 {
-  "id": "ex_lists_012",
-  "title": "Filter Passing Scores",
-  "slug": "filter-passing-scores",
-  "difficulty": "medium",
-  "estimatedMinutes": 14,
-  "prompt": "Write a function passing_scores(scores)...",
-  "goal": "Practice list traversal and conditionals.",
-  "constraints": ["Return a list, not printed output."],
-  "examples": [
-    {
-      "input": "passing_scores([88, 42, 60])",
-      "output": "[88, 60]",
-      "explanation": "60 is included."
-    }
-  ],
-  "starterCode": "def passing_scores(scores):\n    return []\n",
-  "kcTags": [],
-  "recommendation": {
-    "strategy": "lowest_mastery_with_difficulty_match",
-    "reason": "Lists mastery is below the target threshold.",
-    "confidence": 0.86
+  "token": "<access-token>",
+  "user": {
+    "id": "stu_python_beginner_01",
+    "name": "Python Beginner",
+    "email": "student@nextstep.test",
+    "avatarInitials": "PB",
+    "needsDiagnostic": false,
+    "role": "student"
   }
 }
 ```
 
-`difficulty`: `easy | medium | hard`
+## Access Rules
 
-## 1. Create Session
+| Access level | Meaning |
+| --- | --- |
+| Public | No token is required. |
+| Authenticated | A valid access token is required. |
+| Student | A valid token for a user with the `student` role is required. |
+| Teacher | A valid token for a user with the `teacher` role is required. |
 
-`POST /api/sessions`
+For student-only practice endpoints, the backend derives the student identity from the token. Any `student_id` supplied in a request body is ignored for authorization and data ownership.
 
-创建匿名或测试 session，并分配实验组。
+## Endpoint Summary
 
-Request:
+| Area | Method | Path | Access | Description |
+| --- | --- | --- | --- | --- |
+| Diagnostic | `GET` | `/diagnostic/questions` | Authenticated | Return diagnostic questions without answers. |
+| Diagnostic | `POST` | `/diagnostic/submit` | Authenticated | Score answers, save diagnostic results, and return recommendations. |
+| Practice | `POST` | `/sessions` | Student | Create a practice session. |
+| Practice | `GET` | `/session/current-exercise` | Student | Return the current exercise and learning context. |
+| Practice | `POST` | `/hints` | Student | Request a progressive hint. |
+| Exercises | `GET` | `/exercises` | Public | List exercises with optional filters. |
+| Exercises | `GET` | `/exercises/{exercise_id}` | Public | Return one exercise with KC tags and recommendation metadata. |
+| Knowledge components | `GET` | `/kcs` | Public | List knowledge components. |
+| Knowledge components | `GET` | `/kcs/{code}` | Public | Return one knowledge component. |
+| Execution | `POST` | `/executions/run` | Student | Run Python code through the configured Judge0 service. |
+| Submission | `POST` | `/submissions` | Student | Test, persist, score, and update mastery for a submission. |
+| Recommendation | `POST` | `/recommendations/next` | Student | Select the next exercise for the current student. |
+| Mastery | `GET` | `/mastery/me` | Authenticated | Return the caller's mastery profile. |
+| Mastery | `GET` | `/students/{student_id}/mastery` | Owner or admin | Return a specific student's mastery profile. |
+| Learning advice | `GET` | `/learning-advice/student` | Authenticated | Return the current student's learning advice. |
+| Learning advice | `GET` | `/learning-advice/student/{student_id}` | Public | Return advice for a specific student. |
+| Dashboard | `GET` | `/dashboard/student` | Student | Return the student dashboard. |
+| Dashboard | `GET` | `/dashboard/class-summary` | Teacher | Return a class summary. |
+| Study assistant | `POST` | `/assistant/chat` | Authenticated | Interpret a request and recommend an exercise. |
+| Evaluation | `GET` | `/evaluation/export` | Public | Return the current evaluation export payload. |
+
+## Core Request and Response Shapes
+
+### Practice Session
+
+`POST /sessions`
 
 ```json
 {
-  "display_name": "Demo Student",
+  "display_name": "Optional display name",
   "preferred_group": "adaptive"
 }
 ```
 
-Response:
-
 ```json
 {
-  "session_id": "ses_01JZ...",
-  "student_id": "stu_01JZ...",
+  "session_id": "ses_<random>",
+  "student_id": "stu_python_beginner_01",
   "experiment_group": "adaptive"
 }
 ```
 
-## 2. Current Exercise
+`GET /session/current-exercise?session_id=ses_<random>` returns the session identifier, authenticated student identifier, recommended exercise, mastery profile, learning path, dashboard series, latest result, and hint history.
 
-`GET /api/session/current-exercise?session_id=ses_01JZ...`
+### Exercise and Knowledge Component Queries
 
-返回当前推荐题、学生 mastery、学习路径和最近提交结果。
+`GET /exercises` accepts optional `kc`, `difficulty`, and `status` query parameters. Each list item includes `id`, `title`, `difficulty`, `primary_kc`, and `estimated_minutes`.
 
-Response:
+`GET /exercises/{exercise_id}` returns an exercise with `starterCode`, examples, constraints, KC tags, and recommendation metadata. `GET /kcs` and `GET /kcs/{code}` expose KC names, descriptions, short names, exercise counts, and associated exercise identifiers.
 
-```json
-{
-  "sessionId": "ses_01JZ...",
-  "studentId": "stu_01JZ...",
-  "experimentGroup": "adaptive",
-  "exercise": {},
-  "masteryProfile": [],
-  "learningPath": [],
-  "dashboardSeries": [],
-  "latestResult": null,
-  "hintMessages": []
-}
-```
+### Code Execution
 
-## 3. Query Exercises
-
-`GET /api/exercises?kc=lists&difficulty=medium&status=published`
-
-Response:
+`POST /executions/run`
 
 ```json
 {
-  "items": [
-    {
-      "id": "ex_lists_012",
-      "title": "Filter Passing Scores",
-      "difficulty": "medium",
-      "primary_kc": "lists",
-      "estimated_minutes": 14
-    }
-  ],
-  "total": 1
-}
-```
-
-## 4. Exercise Detail
-
-`GET /api/exercises/{exercise_id}`
-
-Response: `Exercise`
-
-## 5. Run Code
-
-`POST /api/executions/run`
-
-只运行公开测试，不写入最终提交记录，可用于编辑器快速验证。
-
-Request:
-
-```json
-{
-  "session_id": "ses_01JZ...",
-  "exercise_id": "ex_lists_012",
+  "session_id": "ses_<random>",
+  "exercise_id": "EX001",
   "language": "python",
-  "code": "def passing_scores(scores):\n    return scores\n"
+  "code": "def answer(value):\n    return value",
+  "stdin": "",
+  "expected_output": null
 }
 ```
 
-Response:
+Only Python is supported. If `exercise_id` is supplied, the backend runs the exercise's test harness. The response contains normalized execution data: `status`, `summary`, `errorType`, runtime and memory metrics, standard output and error, and test-case results. A Judge0 configuration failure is returned as `502`.
+
+### Submission
+
+`POST /submissions`
 
 ```json
 {
-  "id": "run_01JZ...",
-  "status": "failed",
-  "summary": "2 of 4 tests passed.",
-  "errorType": "failed_tests",
-  "runtimeMs": 43,
-  "memoryMb": 18.4,
-  "passedCount": 2,
-  "totalCount": 4,
-  "stdout": "Running pytest harness...",
-  "stderr": "AssertionError...",
-  "testCases": [
-    {
-      "id": "case_1",
-      "label": "Boundary score",
-      "input": "[88, 60]",
-      "expected": "[88, 60]",
-      "actual": "[88]",
-      "hidden": false,
-      "passed": false,
-      "runtimeMs": 11
-    }
-  ],
-  "masteryDelta": []
-}
-```
-
-`status`: `running | passed | failed | error`
-
-`errorType`: `syntax_error | runtime_error | failed_tests | timeout`
-
-## 6. Submit Code
-
-`POST /api/submissions`
-
-提交代码、运行测试、保存 submission log、更新 mastery。
-
-Request:
-
-```json
-{
-  "session_id": "ses_01JZ...",
-  "student_id": "stu_01JZ...",
-  "exercise_id": "ex_lists_012",
+  "session_id": "ses_<random>",
+  "exercise_id": "EX001",
   "language": "python",
-  "code": "def passing_scores(scores):\n    return [s for s in scores if s >= 60]\n"
+  "code": "def answer(value):\n    return value"
 }
 ```
 
-Response:
+The response includes a persisted submission record, the normalized execution result, and the updated mastery profile. A fully correct submission updates every KC associated with the exercise through Bayesian Knowledge Tracing.
+
+### Hints and Recommendations
+
+`POST /hints`
 
 ```json
 {
-  "submission": {
-    "id": "sub_01JZ...",
-    "status": "passed",
-    "correct": true,
-    "attempt_count": 3,
-    "created_at": "2026-06-05T13:40:00Z"
-  },
-  "result": {
-    "id": "sub_01JZ...",
-    "status": "passed",
-    "summary": "All tests passed.",
-    "runtimeMs": 38,
-    "memoryMb": 18.1,
-    "passedCount": 4,
-    "totalCount": 4,
-    "stdout": "case_1 passed",
-    "stderr": "",
-    "testCases": [],
-    "masteryDelta": [
-      {
-        "kcCode": "lists",
-        "before": 0.49,
-        "after": 0.57
-      }
-    ]
-  },
-  "masteryProfile": []
-}
-```
-
-## 7. Request Hint
-
-`POST /api/hints`
-
-根据题目、最近提交、错误摘要和 mastery profile 生成分层 hint。
-
-Request:
-
-```json
-{
-  "session_id": "ses_01JZ...",
-  "student_id": "stu_01JZ...",
-  "exercise_id": "ex_lists_012",
-  "latest_submission_id": "sub_01JZ...",
+  "session_id": "ses_<random>",
+  "exercise_id": "EX001",
+  "latest_submission_id": "sub_42",
   "requested_hint_level": 2
 }
 ```
 
-Response:
+Hint levels start at `1` and are capped at `3`. A response contains the hint text, its level, related KC, timestamp, and an `avoid_full_solution` indicator.
+
+`POST /recommendations/next`
 
 ```json
 {
-  "id": "hint_01JZ...",
-  "role": "assistant",
-  "level": 2,
-  "title": "Place the branch inside the loop",
-  "text": "Inside for score in scores, check whether the current score passes.",
-  "kcCode": "lists",
-  "createdAt": "2026-06-05T13:42:00Z",
-  "avoid_full_solution": true
-}
-```
-
-## 8. Next Recommendation
-
-`POST /api/recommendations/next`
-
-Request:
-
-```json
-{
-  "session_id": "ses_01JZ...",
-  "student_id": "stu_01JZ...",
+  "session_id": "ses_<random>",
+  "current_exercise_id": "EX001",
   "strategy": "adaptive"
 }
 ```
 
-Response:
+The response contains the selected exercise, a student-facing reason, the applied strategy, and a confidence score.
+
+### Diagnostic Assessment
+
+`POST /diagnostic/submit`
 
 ```json
 {
-  "exercise": {},
-  "reason": "Recommended because list_operations mastery is 0.39 below threshold 0.75.",
-  "strategy": "lowest_mastery_with_difficulty_match",
-  "confidence": 0.82
-}
-```
-
-## 9. Student Mastery
-
-`GET /api/students/{student_id}/mastery`
-
-Response:
-
-```json
-{
-  "student_id": "stu_01JZ...",
-  "updated_at": "2026-06-05T13:45:00Z",
-  "items": []
-}
-```
-
-## 10. Class Dashboard
-
-`GET /api/dashboard/class-summary?class_id=demo`
-
-Response:
-
-```json
-{
-  "class_id": "demo",
-  "heatmap": [
-    {
-      "student_id": "stu_01JZ...",
-      "kc_code": "lists",
-      "mastery": 0.57
-    }
-  ],
-  "risk_students": [
-    {
-      "student_id": "stu_01JZ...",
-      "display_name": "Demo Student",
-      "average_mastery": 0.44,
-      "failed_attempts_7d": 9
-    }
-  ],
-  "weak_kcs": [
-    {
-      "kc_code": "exceptions",
-      "average_mastery": 0.31,
-      "affected_students": 12
-    }
+  "answers": [
+    { "questionId": "diag_001", "selectedOptionId": "b" }
   ]
 }
 ```
 
-## 11. Evaluation Export
+The response reports overall and per-KC results, strengths, weaknesses, and exercise recommendations. A student who has already completed the diagnostic receives `409`.
 
-`GET /api/evaluation/export?format=json`
+### Dashboards, Mastery, and Advice
 
-用于导出 adaptive vs baseline 实验日志。
+- `GET /dashboard/student` returns the authenticated student's goal, aggregate mastery, recommendation, mastery profile, and learning path.
+- `GET /dashboard/class-summary?class_id=demo-python-101` returns class totals, a mastery heatmap, at-risk students, weak KCs, and recent submissions.
+- `GET /mastery/me` returns `student_id`, `updated_at`, and KC mastery items.
+- `GET /learning-advice/student` returns a summary, strengths, weaknesses, next steps, and warning text.
 
-Response:
+### Study Assistant
+
+`POST /assistant/chat`
 
 ```json
 {
-  "format": "json",
-  "generated_at": "2026-06-05T13:50:00Z",
-  "records": []
+  "message": "I need an easy loops exercise.",
+  "currentExerciseId": "EX001"
 }
 ```
 
-## 前端接入位置
+The response contains a student-facing message, normalized intent (`kcCode`, `difficulty`, `useWeakestKc`, and source), an optional recommended exercise, and an exact-match flag.
 
-真实后端完成后，替换：
+## Local Integration
 
-- `frontend/src/api/tutor.ts`
-- `frontend/src/api/client.ts` 中的 `VITE_API_BASE_URL`
+The frontend API base URL is configured with `VITE_API_BASE_URL`. The frontend has a mock-data mode controlled by `VITE_USE_MOCK`; in the current implementation, real backend requests require `VITE_USE_MOCK=false` and a Vite restart.
 
-建议保留 mock API 作为 demo fallback，可通过 `VITE_USE_MOCK=true` 控制。
+The backend requires PostgreSQL and uses the environment variables in `backend/.env.example`. Code execution additionally requires a valid Judge0 configuration. AI-assisted hints and recommendation explanations use OpenAI configuration when available and fall back to deterministic responses when the AI service is unavailable.
