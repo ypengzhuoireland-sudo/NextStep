@@ -107,4 +107,4 @@ cd frontend
 npm run build
 ```
 
-Focused frontend tests currently cover study-assistant protocol and exercise-history behavior. Backend API and integration behavior is documented in `API.md` and tested in `backend/tests`.
+The lightweight deployment package does not include a dedicated frontend test directory. Validate the frontend with `npm run build`, then open the deployed Static Web Apps URL and complete the login and practice submission flow against the backend API described in `API.md`.

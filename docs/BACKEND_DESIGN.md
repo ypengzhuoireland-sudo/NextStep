@@ -124,14 +124,9 @@ python3 -m uvicorn app.main:app --reload
 
 The frontend is allowed from local Vite origins on ports `3000` and `5173`.
 
-## Testing and Operational Limits
+## Deployment Checks and Operational Limits
 
-Backend tests live in `backend/tests` and cover BKT calculations, diagnostic behavior, assistant behavior, execution normalization, recommendations, dashboards, submissions, and student-access rules. Run them with:
-
-```bash
-cd backend
-PYTHONPATH=. python3 -m unittest discover -s tests -v
-```
+The lightweight deployment package does not include a dedicated backend test directory. Validate a deployment by starting the FastAPI app, opening `/docs`, logging in with a demo student, and submitting one known-passing exercise through Judge0.
 
 Current limits that should be considered before production deployment:
 

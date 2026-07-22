@@ -9,8 +9,19 @@ __pycache__/
 
 # Virtual environments
 .venv/
+.venv*/
 venv/
 env/
+
+# Node / frontend build output
+node_modules/
+dist/
+build/
+coverage/
+
+# Local temporary files
+.tmp/
+tmp/
 
 # Local environment files
 .env

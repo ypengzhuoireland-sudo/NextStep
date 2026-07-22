@@ -87,14 +87,7 @@ The database initialization script creates the following demo accounts:
 | Student | `student@nextstep.test` | `demo1234` |
 | Teacher | `teacher@nextstep.test` | `demo1234` |
 
-## Testing
-
-Run backend tests from the backend directory:
-
-```bash
-cd backend
-PYTHONPATH=. python3 -m unittest discover -s tests -v
-```
+## Deployment Checks
 
 Build the frontend from the frontend directory:
 
@@ -102,6 +95,15 @@ Build the frontend from the frontend directory:
 cd frontend
 npm run build
 ```
+
+Start the backend and confirm the API documentation opens:
+
+```bash
+cd backend
+python -m uvicorn app.main:app --host 127.0.0.1 --port 8000
+```
+
+Then open `http://127.0.0.1:8000/docs`.
 
 ## Documentation
 
