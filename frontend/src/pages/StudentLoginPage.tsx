@@ -71,17 +71,17 @@ export function StudentLoginPage({ onLogin }: StudentLoginPageProps) {
         initial={{ opacity: 0, y: 18 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.42, ease: "easeOut" }}
-        className="w-full max-w-md"
+        className="w-full max-w-lg"
       >
         <Card className="overflow-hidden">
-          <CardHeader className="border-b border-white/10">
+          <CardHeader className="border-b border-white/10 p-6">
             <div className="flex items-center gap-3">
-              <div className="grid h-11 w-11 place-items-center rounded-lg border border-cyan-300/20 bg-cyan-300/10 shadow-glow">
-                <BrainCircuit className="h-5 w-5 text-cyan-100" />
+              <div className="grid h-12 w-12 place-items-center rounded-lg border border-cyan-300/20 bg-cyan-300/10 shadow-glow">
+                <BrainCircuit className="h-6 w-6 text-cyan-100" />
               </div>
               <div>
-                <CardTitle className="text-base">NextStep AI Tutor</CardTitle>
-                <p className="mt-1 text-xs text-slate-500">Student practice login</p>
+                <CardTitle className="text-lg">NextStep AI Tutor</CardTitle>
+                <p className="mt-1 text-sm text-slate-500">Student practice login</p>
               </div>
             </div>
             <Badge variant="violet">
@@ -90,8 +90,8 @@ export function StudentLoginPage({ onLogin }: StudentLoginPageProps) {
             </Badge>
           </CardHeader>
 
-          <CardContent className="p-4">
-            <div className="mb-4 grid grid-cols-3 gap-2 rounded-lg border border-white/10 bg-white/[0.035] p-1">
+          <CardContent className="p-6">
+            <div className="mb-5 grid grid-cols-3 gap-2 rounded-lg border border-white/10 bg-white/[0.035] p-1">
               <button type="button" onClick={() => switchMode("login")} className={tabClass(mode === "login")}>
                 Login
               </button>
@@ -103,7 +103,7 @@ export function StudentLoginPage({ onLogin }: StudentLoginPageProps) {
               </button>
             </div>
 
-            <form className="space-y-3" onSubmit={submit}>
+            <form className="space-y-4" onSubmit={submit}>
               {mode === "register" ? (
                 <label className="block">
                   <span className="mb-1.5 block text-xs font-medium uppercase text-slate-500">Student Name</span>
@@ -111,7 +111,7 @@ export function StudentLoginPage({ onLogin }: StudentLoginPageProps) {
                     <input
                       value={name}
                       onChange={(e) => setName(e.target.value)}
-                      className="h-10 w-full bg-transparent text-sm text-white outline-none placeholder:text-slate-600"
+                      className="h-11 w-full bg-transparent text-sm text-white outline-none placeholder:text-slate-600"
                       placeholder="Python Beginner"
                     />
                   </div>
@@ -128,7 +128,7 @@ export function StudentLoginPage({ onLogin }: StudentLoginPageProps) {
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="h-10 min-w-0 flex-1 bg-transparent text-sm text-white outline-none placeholder:text-slate-600"
+                    className="h-11 min-w-0 flex-1 bg-transparent text-sm text-white outline-none placeholder:text-slate-600"
                     placeholder={mode === "teacher" ? "teacher@nextstep.test" : "student@nextstep.test"}
                   />
                 </div>
@@ -142,7 +142,7 @@ export function StudentLoginPage({ onLogin }: StudentLoginPageProps) {
                     type="password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="h-10 min-w-0 flex-1 bg-transparent text-sm text-white outline-none placeholder:text-slate-600"
+                    className="h-11 min-w-0 flex-1 bg-transparent text-sm text-white outline-none placeholder:text-slate-600"
                     placeholder="Password"
                   />
                 </div>
@@ -154,7 +154,7 @@ export function StudentLoginPage({ onLogin }: StudentLoginPageProps) {
                 </div>
               ) : null}
 
-              <Button className="mt-2 w-full" disabled={busy || !email || !password}>
+              <Button size="lg" className="mt-2 w-full" disabled={busy || !email || !password}>
                 {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
                 {mode === "register"
                   ? "Create Student Account"
@@ -164,13 +164,6 @@ export function StudentLoginPage({ onLogin }: StudentLoginPageProps) {
               </Button>
             </form>
 
-            <div className="mt-4 rounded-lg border border-white/10 bg-white/[0.035] px-3 py-2 text-xs leading-5 text-slate-400">
-              Demo: <span className="font-mono text-slate-200">student@nextstep.test</span> /{" "}
-              <span className="font-mono text-slate-200">demo1234</span>
-              <br />
-              Teacher: <span className="font-mono text-slate-200">teacher@nextstep.test</span> /{" "}
-              <span className="font-mono text-slate-200">demo1234</span>
-            </div>
           </CardContent>
         </Card>
       </motion.div>
@@ -180,7 +173,7 @@ export function StudentLoginPage({ onLogin }: StudentLoginPageProps) {
 
 function tabClass(active: boolean) {
   return cn(
-    "h-8 rounded-md text-xs font-medium text-slate-400 transition-colors",
+    "h-9 rounded-md text-xs font-medium text-slate-400 transition-colors",
     active && "bg-white/[0.08] text-white"
   );
 }
