@@ -1,8 +1,10 @@
 import os
+from pathlib import Path
 
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import RedirectResponse
+from fastapi.responses import FileResponse, RedirectResponse
+from fastapi.staticfiles import StaticFiles
 
 from app.api.assistant import router as assistant_router
 from app.api.dashboard import router as dashboard_router
@@ -25,6 +27,7 @@ DEFAULT_ALLOWED_ORIGINS = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
 ]
+FRONTEND_DIST = Path(__file__).resolve().parents[1] / "static"
 
 
 def get_allowed_origins() -> list[str]:
@@ -62,6 +65,26 @@ app.include_router(recommendations_router, prefix="/api", tags=["recommendations
 app.include_router(submissions_router, prefix="/api", tags=["submissions"])
 
 
-@app.get("/")
-def root():
-    return RedirectResponse(url="/docs")
+if FRONTEND_DIST.exists():
+    assets_dir = FRONTEND_DIST / "assets"
+    if assets_dir.exists():
+        app.mount("/assets", StaticFiles(directory=assets_dir), name="assets")
+
+    @app.get("/", include_in_schema=False)
+    def frontend_index():
+        return FileResponse(FRONTEND_DIST / "index.html")
+
+    @app.get("/{full_path:path}", include_in_schema=False)
+    def frontend_app(full_path: str):
+        if full_path.startswith(("api/", "docs", "openapi.json", "redoc")):
+            raise HTTPException(status_code=404)
+
+        requested_path = FRONTEND_DIST / full_path
+        if requested_path.is_file():
+            return FileResponse(requested_path)
+
+        return FileResponse(FRONTEND_DIST / "index.html")
+else:
+    @app.get("/")
+    def root():
+        return RedirectResponse(url="/docs")
