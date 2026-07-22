@@ -7,6 +7,7 @@ from sqlalchemy import delete, select
 from sqlalchemy.orm import Session
 
 from app.models.knowledge_component import KnowledgeComponent
+from app.models.class_enrollment import ClassEnrollment
 from app.models.diagnostic_attempt import DiagnosticAttempt
 from app.models.mastery_event import MasteryEvent
 from app.models.student_mastery import StudentMastery
@@ -30,6 +31,9 @@ from app.services.session_service import (
     verify_password,
 )
 from app.services.bkt_service import INITIAL_STUDENT_MASTERY
+
+
+DEFAULT_CLASS_ID = "demo-python-101"
 
 
 def authenticate_student(
@@ -89,6 +93,7 @@ def register_student(
 
     db.add(user)
     db.flush()
+    db.add(ClassEnrollment(class_id=DEFAULT_CLASS_ID, user_id=user.student_id))
     ensure_student_mastery_rows(db, user.student_id)
     db.commit()
     db.refresh(user)

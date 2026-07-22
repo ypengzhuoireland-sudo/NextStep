@@ -82,6 +82,8 @@ For student-only practice endpoints, the backend derives the student identity fr
 | Learning advice | `GET` | `/learning-advice/student/{student_id}` | Public | Return advice for a specific student. |
 | Dashboard | `GET` | `/dashboard/student` | Student | Return the student dashboard. |
 | Dashboard | `GET` | `/dashboard/class-summary` | Teacher | Return a class summary. |
+| Dashboard | `GET` | `/dashboard/classes/{class_id}/students` | Teacher and class member | Search a class student directory. |
+| Dashboard | `GET` | `/dashboard/classes/{class_id}/students/{student_id}` | Teacher and class member | Return one student's detail view. |
 | Study assistant | `POST` | `/assistant/chat` | Authenticated | Interpret a request and recommend an exercise. |
 | Evaluation | `GET` | `/evaluation/export` | Public | Return the current evaluation export payload. |
 
@@ -191,6 +193,8 @@ The response reports overall and per-KC results, strengths, weaknesses, and exer
 
 - `GET /dashboard/student` returns the authenticated student's goal, aggregate mastery, recommendation, mastery profile, and learning path.
 - `GET /dashboard/class-summary?class_id=demo-python-101` returns class totals, a mastery heatmap, at-risk students, weak KCs, and recent submissions.
+- `GET /dashboard/classes/{class_id}/students?q=alice&risk=at_risk&sort=risk&limit=20&offset=0` returns a paginated student directory. Search matches student names and student IDs; supported sort values are `risk`, `name`, and `recent`.
+- `GET /dashboard/classes/{class_id}/students/{student_id}` returns the selected student's mastery profile, weakest KCs, seven-day activity totals, and recent submissions.
 - `GET /mastery/me` returns `student_id`, `updated_at`, and KC mastery items.
 - `GET /learning-advice/student` returns a summary, strengths, weaknesses, next steps, and warning text.
 

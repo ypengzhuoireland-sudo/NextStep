@@ -53,11 +53,14 @@ Access tokens are signed HMAC JWTs. They include the user's student identifier, 
 
 Practice sessions, current exercises, hints, recommendations, execution, and submissions use this dependency. Student and teacher dashboard routes enforce their own role-specific checks. The detailed endpoint contract is maintained in `API.md`.
 
+Teacher dashboard routes additionally verify that the teacher is enrolled in the requested class. This same class boundary is applied to class summaries, student directory searches, and individual student-detail requests.
+
 ## Persistence Model
 
 | Model | Purpose |
 | --- | --- |
 | `User` | Student or teacher identity, role, password hash, account state, and diagnostic completion state. |
+| `ClassEnrollment` | Maps students and teachers to a class and defines the class-level access boundary. |
 | `KnowledgeComponent` | A tracked programming skill or concept. |
 | `Exercise` | A coding exercise, starter code, function name, test cases, hints, and metadata. |
 | `ExerciseKnowledgeComponent` | Many-to-many exercise-to-KC mapping. |

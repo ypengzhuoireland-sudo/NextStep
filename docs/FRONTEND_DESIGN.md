@@ -28,7 +28,7 @@ The root `App` component owns the authenticated user, active view, logout flow, 
 | `DiagnosticTestPage` | New student | Loads questions, submits answers, and passes the recommended initial exercise to practice. |
 | `PracticePage` | Student | Hosts the practice workspace, navigation to the dashboard, and logout. |
 | `StudentDashboardPage` | Student | Displays mastery, learning path, and recommended work. |
-| `TeacherDashboardPage` | Teacher | Displays class totals, mastery heatmaps, risk indicators, weak KCs, and recent submissions. |
+| `TeacherDashboardPage` | Teacher | Displays class totals, mastery heatmaps, risk indicators, weak KCs, recent submissions, student search, and a student detail drawer. |
 
 ## Practice Workspace
 
@@ -64,6 +64,8 @@ src/
 `usePracticeSession` is the practice-state boundary. It loads the current exercise, owns the editable source code, tracks loading states, appends hints, applies mastery deltas, records local exercise history, requests the next recommendation, and refreshes learning advice after submission.
 
 The API client reads the access token from `localStorage` and attaches it as a Bearer token. Domain API modules translate between frontend camelCase types and backend response shapes where necessary. API failures are propagated to page-level error states.
+
+The teacher dashboard keeps the class view in place while opening selected student details in a right-side drawer. Teachers can search by student name or ID, filter for at-risk students, sort the directory, or use `Cmd/Ctrl + K` to focus the search input. Detail data is loaded only after a teacher selects a student.
 
 ## Authentication and Roles
 

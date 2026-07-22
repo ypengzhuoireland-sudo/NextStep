@@ -1,16 +1,22 @@
 from datetime import datetime, timedelta, timezone
 from collections.abc import Iterable
 
-from sqlalchemy import select
+from sqlalchemy import func, or_, select
 from sqlalchemy.orm import Session
 
 from app.models.exercise import Exercise as ExerciseModel
+from app.models.class_enrollment import ClassEnrollment
 from app.models.knowledge_component import KnowledgeComponent as KnowledgeComponentModel
 from app.models.student_mastery import StudentMastery
 from app.models.submission import Submission
 from app.models.user import User
 from app.schemas.dashboard import (
     ClassDashboardSummary,
+    ClassStudentActivity,
+    ClassStudentDetailHeader,
+    ClassStudentDetailResponse,
+    ClassStudentDirectoryItem,
+    ClassStudentDirectoryResponse,
     ClassHeatmapCell,
     DashboardResponse,
     DashboardTotals,
@@ -101,6 +107,8 @@ def list_dashboard_exercises(db: Session) -> list[Exercise]:
 def build_class_dashboard_summary(db: Session, class_id: str) -> ClassDashboardSummary:
     users = db.scalars(
         select(User)
+        .join(ClassEnrollment, ClassEnrollment.user_id == User.student_id)
+        .where(ClassEnrollment.class_id == class_id)
         .where(User.is_active.is_(True))
         .where(User.role == "student")
         .order_by(User.student_id)
@@ -133,8 +141,13 @@ def build_class_dashboard_summary(db: Session, class_id: str) -> ClassDashboardS
     }
     risk_students = build_risk_students(users, kcs, mastery_by_student_kc, student_averages)
     weak_kcs = build_weak_kcs(users, kcs, mastery_by_student_kc)
-    recent_submissions = build_recent_submissions(db)
-    submissions_7d = count_submissions_since(db, datetime.now(timezone.utc) - timedelta(days=7))
+    student_ids = [user.student_id for user in users]
+    recent_submissions = build_recent_submissions(db, student_ids=student_ids)
+    submissions_7d = count_submissions_since(
+        db,
+        datetime.now(timezone.utc) - timedelta(days=7),
+        student_ids=student_ids,
+    )
     average_mastery = average(cell.mastery for cell in heatmap)
 
     updated_at = datetime.now(timezone.utc).isoformat()
@@ -156,22 +169,38 @@ def build_class_dashboard_summary(db: Session, class_id: str) -> ClassDashboardS
     )
 
 
-def count_submissions_since(db: Session, since: datetime) -> int:
-    rows = db.scalars(select(Submission.created_at)).all()
+def count_submissions_since(
+    db: Session,
+    since: datetime,
+    student_ids: list[str] | None = None,
+) -> int:
+    statement = select(Submission.created_at)
+    if student_ids is not None:
+        statement = statement.where(Submission.student_id.in_(student_ids))
+    rows = db.scalars(statement).all()
     threshold = normalise_datetime(since)
 
     return sum(1 for created_at in rows if normalise_datetime(created_at) >= threshold)
 
 
-def build_recent_submissions(db: Session, limit: int = 10) -> list[RecentSubmission]:
-    rows = db.execute(
+def build_recent_submissions(
+    db: Session,
+    limit: int = 10,
+    student_ids: list[str] | None = None,
+) -> list[RecentSubmission]:
+    statement = (
         select(Submission, User.name, ExerciseModel.title, ExerciseModel.kc_id)
         .join(User, User.student_id == Submission.student_id)
         .join(ExerciseModel, ExerciseModel.id == Submission.exercise_id)
         .where(User.role == "student")
         .order_by(Submission.created_at.desc(), Submission.id.desc())
-        .limit(limit)
-    ).all()
+    )
+    if student_ids is not None:
+        if not student_ids:
+            return []
+        statement = statement.where(Submission.student_id.in_(student_ids))
+
+    rows = db.execute(statement.limit(limit)).all()
 
     return [
         RecentSubmission(
@@ -284,3 +313,188 @@ def normalise_datetime(value: datetime) -> datetime:
         return value.replace(tzinfo=timezone.utc)
 
     return value.astimezone(timezone.utc)
+
+
+def teacher_has_class_access(db: Session, teacher_id: str, class_id: str) -> bool:
+    return db.get(ClassEnrollment, (class_id, teacher_id)) is not None
+
+
+def list_class_students(
+    db: Session,
+    class_id: str,
+    query: str = "",
+    risk: str = "all",
+    sort_by: str = "risk",
+    limit: int = 20,
+    offset: int = 0,
+) -> ClassStudentDirectoryResponse:
+    statement = (
+        select(User)
+        .join(ClassEnrollment, ClassEnrollment.user_id == User.student_id)
+        .where(ClassEnrollment.class_id == class_id)
+        .where(User.is_active.is_(True))
+        .where(User.role == "student")
+    )
+    normalized_query = query.strip().lower()
+    if normalized_query:
+        pattern = f"%{normalized_query}%"
+        statement = statement.where(
+            or_(
+                func.lower(User.name).like(pattern),
+                func.lower(User.student_id).like(pattern),
+            )
+        )
+
+    users = db.scalars(statement.order_by(User.name, User.student_id)).all()
+    student_ids = [user.student_id for user in users]
+    mastery_by_student = load_mastery_by_student(db, student_ids)
+    last_active_by_student = load_last_active_by_student(db, student_ids)
+    items = [
+        build_directory_item(
+            user,
+            mastery_by_student.get(user.student_id, []),
+            last_active_by_student.get(user.student_id),
+        )
+        for user in users
+    ]
+
+    if risk == "at_risk":
+        items = [item for item in items if item.risk_level == "at_risk"]
+
+    if sort_by == "name":
+        items.sort(key=lambda item: (item.display_name.lower(), item.student_id))
+    elif sort_by == "recent":
+        items.sort(key=lambda item: item.last_active_at == "No recent activity")
+    else:
+        items.sort(key=lambda item: (item.average_mastery, item.display_name.lower()))
+
+    total = len(items)
+    page = items[offset : offset + limit]
+    next_offset = offset + limit if offset + limit < total else None
+    return ClassStudentDirectoryResponse(items=page, total=total, next_offset=next_offset)
+
+
+def get_class_student_detail(
+    db: Session,
+    class_id: str,
+    student_id: str,
+) -> ClassStudentDetailResponse | None:
+    user = db.scalar(
+        select(User)
+        .join(ClassEnrollment, ClassEnrollment.user_id == User.student_id)
+        .where(ClassEnrollment.class_id == class_id)
+        .where(User.student_id == student_id)
+        .where(User.is_active.is_(True))
+        .where(User.role == "student")
+    )
+    if user is None:
+        return None
+
+    mastery_profile = list_dashboard_mastery(db, student_id)
+    last_active = load_last_active_by_student(db, [student_id]).get(student_id)
+    directory_item = build_directory_item(user, mastery_profile, last_active)
+    seven_days_ago = datetime.now(timezone.utc) - timedelta(days=7)
+    submissions = db.scalars(
+        select(Submission).where(Submission.student_id == student_id)
+    ).all()
+    recent_submissions = build_recent_submissions(db, student_ids=[student_id])
+    submissions_7d = sum(
+        1 for submission in submissions if normalise_datetime(submission.created_at) >= seven_days_ago
+    )
+    failed_attempts_7d = sum(
+        1
+        for submission in submissions
+        if normalise_datetime(submission.created_at) >= seven_days_ago and not submission.passed
+    )
+
+    return ClassStudentDetailResponse(
+        student=ClassStudentDetailHeader(
+            student_id=directory_item.student_id,
+            display_name=directory_item.display_name,
+            average_mastery=directory_item.average_mastery,
+            risk_level=directory_item.risk_level,
+            last_active_at=directory_item.last_active_at,
+        ),
+        mastery_profile=mastery_profile,
+        weak_kcs=sorted(mastery_profile, key=lambda item: item.mastery)[:3],
+        activity=ClassStudentActivity(
+            submissions_7d=submissions_7d,
+            failed_attempts_7d=failed_attempts_7d,
+            hints_used_7d=0,
+            recent_submissions=recent_submissions,
+        ),
+    )
+
+
+def load_mastery_by_student(
+    db: Session,
+    student_ids: list[str],
+) -> dict[str, list[KnowledgeComponent]]:
+    profiles = {student_id: [] for student_id in student_ids}
+    if not student_ids:
+        return profiles
+
+    rows = db.execute(
+        select(
+            StudentMastery.student_id,
+            KnowledgeComponentModel.id,
+            KnowledgeComponentModel.name,
+            KnowledgeComponentModel.short_name,
+            KnowledgeComponentModel.description,
+            StudentMastery.mastery,
+        )
+        .join(KnowledgeComponentModel, KnowledgeComponentModel.id == StudentMastery.kc_id)
+        .where(StudentMastery.student_id.in_(student_ids))
+        .order_by(StudentMastery.student_id, KnowledgeComponentModel.id)
+    ).all()
+
+    for row in rows:
+        profiles[row.student_id].append(
+            KnowledgeComponent(
+                id=row.id,
+                code=row.id,
+                name=row.name,
+                shortName=row.short_name,
+                description=row.description or "",
+                mastery=row.mastery,
+                trend=0.0,
+                state=mastery_state(row.mastery),
+            )
+        )
+
+    return profiles
+
+
+def load_last_active_by_student(
+    db: Session,
+    student_ids: list[str],
+) -> dict[str, datetime]:
+    if not student_ids:
+        return {}
+    rows = db.execute(
+        select(Submission.student_id, func.max(Submission.created_at))
+        .where(Submission.student_id.in_(student_ids))
+        .group_by(Submission.student_id)
+    ).all()
+    return {student_id: created_at for student_id, created_at in rows if created_at is not None}
+
+
+def build_directory_item(
+    user: User,
+    mastery_profile: list[KnowledgeComponent],
+    last_active_at: datetime | None,
+) -> ClassStudentDirectoryItem:
+    average_mastery = average(item.mastery for item in mastery_profile)
+    weakest = min(mastery_profile, key=lambda item: item.mastery, default=None)
+    return ClassStudentDirectoryItem(
+        student_id=user.student_id,
+        display_name=user.name,
+        average_mastery=round(average_mastery, 2),
+        risk_level="at_risk" if average_mastery < 0.6 else "on_track",
+        weakest_kc=weakest.name if weakest is not None else "No KC data",
+        last_active_at=(
+            format_submission_time(last_active_at)
+            if last_active_at is not None
+            else "No recent activity"
+        ),
+    )

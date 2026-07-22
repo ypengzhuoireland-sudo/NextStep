@@ -230,3 +230,30 @@ export interface ClassDashboardSummary {
   weakKcs: WeakKcSummary[];
   recentSubmissions: RecentSubmission[];
 }
+
+export interface ClassStudentDirectoryItem {
+  studentId: string;
+  displayName: string;
+  averageMastery: number;
+  riskLevel: "at_risk" | "on_track";
+  weakestKc: string;
+  lastActiveAt: string;
+}
+
+export interface ClassStudentDirectory {
+  items: ClassStudentDirectoryItem[];
+  total: number;
+  nextOffset: number | null;
+}
+
+export interface ClassStudentDetail {
+  student: ClassStudentDirectoryItem;
+  masteryProfile: KnowledgeComponent[];
+  weakKcs: KnowledgeComponent[];
+  activity: {
+    submissions7d: number;
+    failedAttempts7d: number;
+    hintsUsed7d: number;
+    recentSubmissions: RecentSubmission[];
+  };
+}

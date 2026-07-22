@@ -93,3 +93,40 @@ class ClassDashboardSummary(BaseModel):
     risk_students: list[RiskStudent]
     weak_kcs: list[WeakKcSummary]
     recent_submissions: list[RecentSubmission]
+
+
+class ClassStudentDirectoryItem(BaseModel):
+    student_id: str
+    display_name: str
+    average_mastery: float
+    risk_level: str
+    weakest_kc: str
+    last_active_at: str
+
+
+class ClassStudentDirectoryResponse(BaseModel):
+    items: list[ClassStudentDirectoryItem]
+    total: int
+    next_offset: int | None = None
+
+
+class ClassStudentDetailHeader(BaseModel):
+    student_id: str
+    display_name: str
+    average_mastery: float
+    risk_level: str
+    last_active_at: str
+
+
+class ClassStudentActivity(BaseModel):
+    submissions_7d: int
+    failed_attempts_7d: int
+    hints_used_7d: int
+    recent_submissions: list[RecentSubmission]
+
+
+class ClassStudentDetailResponse(BaseModel):
+    student: ClassStudentDetailHeader
+    mastery_profile: list[KnowledgeComponent]
+    weak_kcs: list[KnowledgeComponent]
+    activity: ClassStudentActivity

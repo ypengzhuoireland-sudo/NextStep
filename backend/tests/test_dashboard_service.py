@@ -4,7 +4,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
 from app.db.base import Base
-from app.models import Exercise, KnowledgeComponent, StudentMastery, Submission, User
+from app.models import ClassEnrollment, Exercise, KnowledgeComponent, StudentMastery, Submission, User
 from app.services.dashboard_service import build_class_dashboard_summary
 
 
@@ -46,6 +46,7 @@ class DashboardServiceTest(unittest.TestCase):
                 )
             )
             db.add(StudentMastery(student_id="s1", kc_id="KC001", mastery=0.4))
+            db.add(ClassEnrollment(class_id="demo-python-101", user_id="s1"))
             db.add(
                 Submission(
                     student_id="s1",

@@ -8,6 +8,7 @@ from sqlalchemy.orm import Session
 from app.db.base import Base
 from app.db.session import SessionLocal, engine
 from app.models.bkt_parameters import KnowledgeComponentBKTParameters
+from app.models.class_enrollment import ClassEnrollment
 from app.models.exercise import Exercise, ExerciseKnowledgeComponent
 from app.models.knowledge_component import KnowledgeComponent
 from app.models.mastery_event import MasteryEvent
@@ -18,6 +19,7 @@ from app.services.bkt_service import DEFAULT_BKT_PARAMETERS, INITIAL_STUDENT_MAS
 
 USERS_PATH = Path(__file__).resolve().parents[2] / "seeds" / "users_seed.json"
 EXERCISE_BANK_PATH = Path(__file__).resolve().parents[2] / "seeds" / "p09_python_exercise_bank.json"
+DEFAULT_CLASS_ID = "demo-python-101"
 
 
 def init_db() -> None:
@@ -56,30 +58,53 @@ def seed_users() -> None:
             user = db.query(User).filter(User.username == user_data["username"]).one_or_none()
 
             if user is None:
-                db.add(
-                    User(
-                        student_id=user_data["student_id"],
-                        username=user_data["username"],
-                        name=user_data["name"],
-                        role=user_data["role"],
-                        password_salt=user_data["password_salt"],
-                        password_hash=user_data["password_hash"],
-                        diagnostic_completed=True,
-                    )
+                user = User(
+                    student_id=user_data["student_id"],
+                    username=user_data["username"],
+                    name=user_data["name"],
+                    role=user_data["role"],
+                    password_salt=user_data["password_salt"],
+                    password_hash=user_data["password_hash"],
+                    diagnostic_completed=True,
                 )
-                continue
+                db.add(user)
+            else:
+                user.student_id = user_data["student_id"]
+                user.name = user_data["name"]
+                user.role = user_data["role"]
+                user.password_salt = user_data["password_salt"]
+                user.password_hash = user_data["password_hash"]
+                user.is_active = True
+                user.diagnostic_completed = True
 
-            user.student_id = user_data["student_id"]
-            user.name = user_data["name"]
-            user.role = user_data["role"]
-            user.password_salt = user_data["password_salt"]
-            user.password_hash = user_data["password_hash"]
-            user.is_active = True
-            user.diagnostic_completed = True
+        seed_default_class_enrollments(db)
 
         db.commit()
     finally:
         db.close()
+
+
+def seed_default_class_enrollments(db: Session) -> None:
+    """Add every active user to the default class without duplicating rows."""
+    db.flush()
+    enrolled_user_ids = set(
+        db.scalars(
+            select(ClassEnrollment.user_id).where(
+                ClassEnrollment.class_id == DEFAULT_CLASS_ID
+            )
+        ).all()
+    )
+    active_user_ids = db.scalars(
+        select(User.student_id).where(User.is_active.is_(True))
+    ).all()
+
+    db.add_all(
+        [
+            ClassEnrollment(class_id=DEFAULT_CLASS_ID, user_id=user_id)
+            for user_id in active_user_ids
+            if user_id not in enrolled_user_ids
+        ]
+    )
 
 
 def seed_exercise_bank() -> None:
