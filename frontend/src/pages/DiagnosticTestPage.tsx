@@ -6,13 +6,18 @@ import {
   BrainCircuit,
   Check,
   CheckCircle2,
+  CircleMinus,
+  CircleX,
   Clock3,
+  ListChecks,
   Loader2,
+  SkipForward,
   Target,
   TriangleAlert
 } from "lucide-react";
 import {
   getDiagnosticQuestions,
+  skipDiagnostic,
   submitDiagnosticAnswers,
   type DiagnosticQuestionResponse,
   type DiagnosticResult
@@ -26,11 +31,12 @@ interface DiagnosticTestPageProps {
   onComplete: (exerciseId?: string) => void;
 }
 
-type PageState = "loading" | "ready" | "submitting" | "result" | "error";
+type PageState = "loading" | "ready" | "submitting" | "skipping" | "result" | "error";
 
 export function DiagnosticTestPage({ onComplete }: DiagnosticTestPageProps) {
   const [assessment, setAssessment] = useState<DiagnosticQuestionResponse | null>(null);
   const [answers, setAnswers] = useState<Record<string, string>>({});
+  const [skippedQuestions, setSkippedQuestions] = useState<Set<string>>(() => new Set());
   const [currentIndex, setCurrentIndex] = useState(0);
   const [result, setResult] = useState<DiagnosticResult | null>(null);
   const [state, setState] = useState<PageState>("loading");
@@ -55,9 +61,10 @@ export function DiagnosticTestPage({ onComplete }: DiagnosticTestPageProps) {
   }, []);
 
   const answeredCount = Object.keys(answers).length;
+  const skippedCount = skippedQuestions.size;
+  const completedCount = answeredCount + skippedCount;
   const question = assessment?.questions[currentIndex];
   const isLastQuestion = currentIndex === (assessment?.questions.length ?? 0) - 1;
-  const allAnswered = answeredCount === assessment?.totalQuestions;
 
   const groupedResults = useMemo(() => {
     if (!result) return { strengths: [], developing: [], weaknesses: [] };
@@ -69,7 +76,10 @@ export function DiagnosticTestPage({ onComplete }: DiagnosticTestPageProps) {
   }, [result]);
 
   async function submit() {
-    if (!assessment || !allAnswered) return;
+    if (!assessment) return;
+    setSkippedQuestions(
+      new Set(assessment.questions.filter((item) => !answers[item.id]).map((item) => item.id))
+    );
     setState("submitting");
     setError("");
     try {
@@ -80,6 +90,36 @@ export function DiagnosticTestPage({ onComplete }: DiagnosticTestPageProps) {
       setError(reason instanceof Error ? reason.message : "Unable to score the diagnostic test");
       setState("ready");
     }
+  }
+
+  async function skipEntireDiagnostic() {
+    setState("skipping");
+    setError("");
+    try {
+      await skipDiagnostic();
+      onComplete();
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : "Unable to skip the diagnostic test");
+      setState("ready");
+    }
+  }
+
+  function selectAnswer(questionId: string, optionId: string) {
+    setAnswers((current) => ({ ...current, [questionId]: optionId }));
+    setSkippedQuestions((current) => {
+      if (!current.has(questionId)) return current;
+      const next = new Set(current);
+      next.delete(questionId);
+      return next;
+    });
+  }
+
+  function goToNextQuestion() {
+    if (!question) return;
+    if (!answers[question.id]) {
+      setSkippedQuestions((current) => new Set(current).add(question.id));
+    }
+    setCurrentIndex((index) => index + 1);
   }
 
   if (state === "loading") {
@@ -128,9 +168,24 @@ export function DiagnosticTestPage({ onComplete }: DiagnosticTestPageProps) {
               <p className="mt-1 text-xs text-slate-500">12 knowledge components | 24 questions</p>
             </div>
           </div>
-          <div className="flex items-center gap-2 text-xs text-slate-400">
-            <Clock3 className="h-4 w-4" />
-            About {assessment.estimatedMinutes} minutes
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="flex items-center gap-2 text-xs text-slate-400">
+              <Clock3 className="h-4 w-4" />
+              About {assessment.estimatedMinutes} minutes
+            </div>
+            <Button
+              variant="secondary"
+              size="sm"
+              disabled={state === "submitting" || state === "skipping"}
+              onClick={skipEntireDiagnostic}
+            >
+              {state === "skipping" ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <SkipForward className="h-4 w-4" />
+              )}
+              Skip diagnostic
+            </Button>
           </div>
         </header>
 
@@ -138,9 +193,12 @@ export function DiagnosticTestPage({ onComplete }: DiagnosticTestPageProps) {
           <aside className="border-b border-white/10 pb-5 lg:border-b-0 lg:border-r lg:pb-0 lg:pr-5">
             <div className="flex items-center justify-between text-xs text-slate-400">
               <span>Progress</span>
-              <span>{answeredCount}/{assessment.totalQuestions}</span>
+              <span>{completedCount}/{assessment.totalQuestions}</span>
             </div>
-            <Progress className="mt-3" value={(answeredCount / assessment.totalQuestions) * 100} />
+            <Progress className="mt-3" value={(completedCount / assessment.totalQuestions) * 100} />
+            <p className="mt-2 text-[11px] text-slate-600">
+              {answeredCount} answered · {skippedCount} skipped
+            </p>
             <div className="mt-5 grid grid-cols-8 gap-1.5 lg:grid-cols-4">
               {assessment.questions.map((item, index) => (
                 <button
@@ -154,10 +212,18 @@ export function DiagnosticTestPage({ onComplete }: DiagnosticTestPageProps) {
                       ? "border-cyan-300/50 bg-cyan-300/15 text-cyan-100"
                       : answers[item.id]
                         ? "border-emerald-300/30 bg-emerald-300/10 text-emerald-100"
-                        : "border-white/10 bg-white/[0.035] text-slate-500 hover:bg-white/[0.07]"
+                        : skippedQuestions.has(item.id)
+                          ? "border-amber-300/30 bg-amber-300/10 text-amber-100"
+                          : "border-white/10 bg-white/[0.035] text-slate-500 hover:bg-white/[0.07]"
                   )}
                 >
-                  {answers[item.id] ? <Check className="h-3.5 w-3.5" /> : index + 1}
+                  {answers[item.id] ? (
+                    <Check className="h-3.5 w-3.5" />
+                  ) : skippedQuestions.has(item.id) ? (
+                    <CircleMinus className="h-3.5 w-3.5" />
+                  ) : (
+                    index + 1
+                  )}
                 </button>
               ))}
             </div>
@@ -188,7 +254,7 @@ export function DiagnosticTestPage({ onComplete }: DiagnosticTestPageProps) {
                   <button
                     key={option.id}
                     type="button"
-                    onClick={() => setAnswers((current) => ({ ...current, [question.id]: option.id }))}
+                    onClick={() => selectAnswer(question.id, option.id)}
                     className={cn(
                       "flex min-h-12 w-full items-center gap-3 rounded-lg border px-3 py-2.5 text-left text-sm transition-colors",
                       selected
@@ -210,24 +276,28 @@ export function DiagnosticTestPage({ onComplete }: DiagnosticTestPageProps) {
 
             {error ? <p className="mt-4 text-sm text-rose-200">{error}</p> : null}
 
-            <div className="mt-6 flex items-center justify-between border-t border-white/10 pt-4">
+            <p className="mt-5 text-xs text-slate-500">
+              You can continue without selecting an answer. Skipped questions are marked incorrect.
+            </p>
+
+            <div className="mt-4 flex items-center justify-between border-t border-white/10 pt-4">
               <Button
                 variant="secondary"
-                disabled={currentIndex === 0 || state === "submitting"}
+                disabled={currentIndex === 0 || state === "submitting" || state === "skipping"}
                 onClick={() => setCurrentIndex((index) => index - 1)}
               >
                 <ArrowLeft className="h-4 w-4" /> Previous
               </Button>
 
               {isLastQuestion ? (
-                <Button disabled={!allAnswered || state === "submitting"} onClick={submit}>
+                <Button disabled={state === "submitting" || state === "skipping"} onClick={submit}>
                   {state === "submitting" ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
                   Submit test
                 </Button>
               ) : (
                 <Button
-                  disabled={!answers[question.id]}
-                  onClick={() => setCurrentIndex((index) => index + 1)}
+                  disabled={state === "submitting" || state === "skipping"}
+                  onClick={goToNextQuestion}
                 >
                   Next <ArrowRight className="h-4 w-4" />
                 </Button>
@@ -249,6 +319,8 @@ interface ResultSectionProps {
 }
 
 function DiagnosticResults({ result, strengths, developing, weaknesses, onStart }: ResultSectionProps) {
+  const skippedCount = result.questionResults.filter((item) => item.skipped).length;
+
   return (
     <main className="soft-grid min-h-screen p-3 sm:p-6">
       <div className="mx-auto max-w-6xl">
@@ -270,6 +342,65 @@ function DiagnosticResults({ result, strengths, developing, weaknesses, onStart 
           <ResultGroup title="Strengths" items={strengths} tone="green" empty="No confirmed strengths yet" />
           <ResultGroup title="Developing" items={developing} tone="amber" empty="No developing areas" />
           <ResultGroup title="Focus areas" items={weaknesses} tone="rose" empty="No major gaps identified" />
+        </section>
+
+        <section className="mt-6 border-t border-white/10 pt-5">
+          <div className="flex flex-wrap items-end justify-between gap-3">
+            <div>
+              <div className="flex items-center gap-2">
+                <ListChecks className="h-5 w-5 text-cyan-200" />
+                <h2 className="text-base font-semibold">Question review</h2>
+              </div>
+              <p className="mt-1.5 text-xs text-slate-500">
+                {result.correctAnswers} correct ·{" "}
+                {result.totalQuestions - result.correctAnswers - skippedCount} incorrect ·{" "}
+                {skippedCount} skipped
+              </p>
+            </div>
+          </div>
+
+          <div className="mt-4 grid gap-3 lg:grid-cols-2">
+            {result.questionResults.map((item, index) => (
+              <article
+                key={item.questionId}
+                className={cn(
+                  "rounded-lg border p-4",
+                  item.isCorrect
+                    ? "border-emerald-300/20 bg-emerald-300/[0.05]"
+                    : item.skipped
+                      ? "border-amber-300/20 bg-amber-300/[0.05]"
+                      : "border-rose-300/20 bg-rose-300/[0.05]"
+                )}
+              >
+                <div className="flex items-center justify-between gap-3">
+                  <span className="font-mono text-xs text-slate-500">Question {index + 1}</span>
+                  <Badge variant={item.isCorrect ? "green" : item.skipped ? "amber" : "rose"}>
+                    {item.isCorrect ? (
+                      <CheckCircle2 className="h-3.5 w-3.5" />
+                    ) : item.skipped ? (
+                      <CircleMinus className="h-3.5 w-3.5" />
+                    ) : (
+                      <CircleX className="h-3.5 w-3.5" />
+                    )}
+                    {item.isCorrect ? "Correct" : item.skipped ? "Skipped" : "Incorrect"}
+                  </Badge>
+                </div>
+                <h3 className="mt-3 text-sm font-medium leading-6 text-slate-200">{item.prompt}</h3>
+                <div className="mt-3 space-y-1.5 text-xs leading-5">
+                  <p className={item.isCorrect ? "text-emerald-200" : "text-slate-400"}>
+                    <span className="text-slate-600">Your answer:</span>{" "}
+                    {item.selectedOptionText ?? "No answer"}
+                  </p>
+                  {!item.isCorrect ? (
+                    <p className="text-emerald-200">
+                      <span className="text-slate-600">Correct answer:</span>{" "}
+                      {item.correctOptionText}
+                    </p>
+                  ) : null}
+                </div>
+              </article>
+            ))}
+          </div>
         </section>
 
         <section className="mt-6 border-t border-white/10 pt-5">

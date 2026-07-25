@@ -49,6 +49,18 @@ def submit_diagnostic_answers(
         ) from error
 
 
+@router.post("/skip", response_model=DiagnosticResultResponse)
+def skip_diagnostic(
+    auth_credentials: HTTPAuthorizationCredentials | None = Depends(bearer_scheme),
+    db: Session = Depends(get_db),
+) -> DiagnosticResultResponse:
+    user = get_current_user(auth_credentials, db)
+    try:
+        return submit_diagnostic(db, user, [])
+    except DiagnosticAlreadyCompletedError as error:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(error)) from error
+
+
 def get_current_user(
     auth_credentials: HTTPAuthorizationCredentials | None,
     db: Session,

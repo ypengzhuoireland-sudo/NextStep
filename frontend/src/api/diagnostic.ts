@@ -39,10 +39,22 @@ export interface DiagnosticRecommendation {
   reason: string;
 }
 
+export interface DiagnosticQuestionResult {
+  questionId: string;
+  prompt: string;
+  selectedOptionId: string | null;
+  selectedOptionText: string | null;
+  correctOptionId: string;
+  correctOptionText: string;
+  isCorrect: boolean;
+  skipped: boolean;
+}
+
 export interface DiagnosticResult {
   totalQuestions: number;
   correctAnswers: number;
   overallScore: number;
+  questionResults: DiagnosticQuestionResult[];
   kcResults: DiagnosticKcResult[];
   strengths: string[];
   weaknesses: string[];
@@ -64,5 +76,11 @@ export async function submitDiagnosticAnswers(
         selectedOptionId
       }))
     })
+  });
+}
+
+export async function skipDiagnostic(): Promise<DiagnosticResult> {
+  return apiRequest<DiagnosticResult>("/diagnostic/skip", {
+    method: "POST"
   });
 }

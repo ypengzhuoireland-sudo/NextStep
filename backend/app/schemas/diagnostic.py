@@ -23,7 +23,7 @@ class DiagnosticQuestionResponse(BaseModel):
 
 class DiagnosticAnswer(BaseModel):
     questionId: str
-    selectedOptionId: str = Field(min_length=1, max_length=10)
+    selectedOptionId: str | None = Field(default=None, min_length=1, max_length=10)
 
 
 class DiagnosticSubmissionRequest(BaseModel):
@@ -49,10 +49,22 @@ class DiagnosticExerciseRecommendation(BaseModel):
     reason: str
 
 
+class DiagnosticQuestionResult(BaseModel):
+    questionId: str
+    prompt: str
+    selectedOptionId: str | None
+    selectedOptionText: str | None
+    correctOptionId: str
+    correctOptionText: str
+    isCorrect: bool
+    skipped: bool
+
+
 class DiagnosticResultResponse(BaseModel):
     totalQuestions: int
     correctAnswers: int
     overallScore: float
+    questionResults: list[DiagnosticQuestionResult]
     kcResults: list[DiagnosticKcResult]
     strengths: list[str]
     weaknesses: list[str]

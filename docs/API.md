@@ -65,7 +65,8 @@ For student-only practice endpoints, the backend derives the student identity fr
 | Area | Method | Path | Access | Description |
 | --- | --- | --- | --- | --- |
 | Diagnostic | `GET` | `/diagnostic/questions` | Authenticated | Return diagnostic questions without answers. |
-| Diagnostic | `POST` | `/diagnostic/submit` | Authenticated | Score answers, save diagnostic results, and return recommendations. |
+| Diagnostic | `POST` | `/diagnostic/submit` | Authenticated | Score submitted and skipped answers, save results, and return question review details and recommendations. |
+| Diagnostic | `POST` | `/diagnostic/skip` | Authenticated | Skip the entire diagnostic and initialize mastery with all questions marked incorrect. |
 | Practice | `POST` | `/sessions` | Student | Create a practice session. |
 | Practice | `GET` | `/session/current-exercise` | Student | Return the current exercise and learning context. |
 | Practice | `POST` | `/hints` | Student | Request a progressive hint. |
@@ -187,7 +188,14 @@ The response contains the selected exercise, a student-facing reason, the applie
 }
 ```
 
-The response reports overall and per-KC results, strengths, weaknesses, and exercise recommendations. A student who has already completed the diagnostic receives `409`.
+Answers may omit questions; every omitted question is recorded as skipped and scored as
+incorrect. The response reports overall and per-KC results, a `questionResults` entry for
+every question (including the selected and correct answers), strengths, weaknesses, and
+exercise recommendations.
+
+`POST /diagnostic/skip` accepts no request body and completes the diagnostic with every
+question marked as skipped and incorrect. A student who has already completed or skipped
+the diagnostic receives `409`.
 
 ### Dashboards, Mastery, and Advice
 

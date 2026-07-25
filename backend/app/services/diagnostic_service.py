@@ -21,6 +21,7 @@ from app.schemas.diagnostic import (
     DiagnosticKcResult,
     DiagnosticOption,
     DiagnosticQuestion,
+    DiagnosticQuestionResult,
     DiagnosticQuestionResponse,
     DiagnosticResultResponse,
 )
@@ -93,24 +94,41 @@ def submit_diagnostic(
 
     if len(answers) != len(answer_map):
         raise DiagnosticValidationError("Each diagnostic question can only be answered once")
-    if set(answer_map) != expected_ids:
-        raise DiagnosticValidationError("Every diagnostic question must be answered")
+    unknown_question_ids = set(answer_map) - expected_ids
+    if unknown_question_ids:
+        raise DiagnosticValidationError(
+            f"Unknown diagnostic question: {sorted(unknown_question_ids)[0]}"
+        )
 
     correct_by_kc: dict[str, int] = defaultdict(int)
     total_by_kc: dict[str, int] = defaultdict(int)
+    question_results: list[DiagnosticQuestionResult] = []
     total_correct = 0
 
     for question in questions:
-        selected_option = answer_map[question["id"]]
-        valid_options = {option["id"] for option in question["options"]}
-        if selected_option not in valid_options:
+        selected_option = answer_map.get(question["id"])
+        options_by_id = {option["id"]: option["text"] for option in question["options"]}
+        if selected_option is not None and selected_option not in options_by_id:
             raise DiagnosticValidationError(f"Invalid option for question {question['id']}")
 
         kc_id = question["kc_id"]
         total_by_kc[kc_id] += 1
-        if selected_option == question["correct_option_id"]:
+        is_correct = selected_option == question["correct_option_id"]
+        if is_correct:
             correct_by_kc[kc_id] += 1
             total_correct += 1
+        question_results.append(
+            DiagnosticQuestionResult(
+                questionId=question["id"],
+                prompt=question["prompt"],
+                selectedOptionId=selected_option,
+                selectedOptionText=options_by_id.get(selected_option) if selected_option else None,
+                correctOptionId=question["correct_option_id"],
+                correctOptionText=options_by_id[question["correct_option_id"]],
+                isCorrect=is_correct,
+                skipped=selected_option is None,
+            )
+        )
 
     kc_names = {question["kc_id"]: question["kc_name"] for question in questions}
     kc_order = list(dict.fromkeys(question["kc_id"] for question in questions))
@@ -144,7 +162,13 @@ def submit_diagnostic(
     db.add(
         DiagnosticAttempt(
             student_id=user.student_id,
-            answers=[answer.model_dump() for answer in answers],
+            answers=[
+                {
+                    "questionId": question["id"],
+                    "selectedOptionId": answer_map.get(question["id"]),
+                }
+                for question in questions
+            ],
             kc_results=[result.model_dump() for result in kc_results],
             overall_score=overall_score,
         )
@@ -157,6 +181,7 @@ def submit_diagnostic(
         totalQuestions=len(questions),
         correctAnswers=total_correct,
         overallScore=overall_score,
+        questionResults=question_results,
         kcResults=kc_results,
         strengths=[item.kcName for item in kc_results if item.level == "strength"],
         weaknesses=[item.kcName for item in kc_results if item.level == "weakness"],
