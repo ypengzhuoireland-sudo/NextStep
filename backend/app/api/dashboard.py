@@ -32,6 +32,7 @@ def class_dashboard_summary(
     auth_credentials: HTTPAuthorizationCredentials | None = Depends(bearer_scheme),
     db: Session = Depends(get_db),
 ) -> ClassDashboardSummary:
+    """Handle class dashboard summary."""
     current_user = get_current_dashboard_user(auth_credentials, db, required_role="teacher")
     require_teacher_class_access(db, current_user, class_id)
     return build_class_dashboard_summary(db, class_id)
@@ -43,6 +44,7 @@ def dashboard(
     auth_credentials: HTTPAuthorizationCredentials | None = Depends(bearer_scheme),
     db: Session = Depends(get_db),
 ) -> DashboardResponse:
+    """Handle dashboard."""
     current_user = get_current_dashboard_user(auth_credentials, db, required_role="student")
     return build_dashboard_response(db, current_user)
 
@@ -61,6 +63,7 @@ def class_student_directory(
     auth_credentials: HTTPAuthorizationCredentials | None = Depends(bearer_scheme),
     db: Session = Depends(get_db),
 ) -> ClassStudentDirectoryResponse:
+    """Handle class student directory."""
     current_user = get_current_dashboard_user(auth_credentials, db, required_role="teacher")
     require_teacher_class_access(db, current_user, class_id)
     return list_class_students(db, class_id, q, risk, sort, limit, offset)
@@ -76,6 +79,7 @@ def class_student_detail(
     auth_credentials: HTTPAuthorizationCredentials | None = Depends(bearer_scheme),
     db: Session = Depends(get_db),
 ) -> ClassStudentDetailResponse:
+    """Handle class student detail."""
     current_user = get_current_dashboard_user(auth_credentials, db, required_role="teacher")
     require_teacher_class_access(db, current_user, class_id)
     detail = get_class_student_detail(db, class_id, student_id)
@@ -90,6 +94,7 @@ def get_current_dashboard_user(
     db: Session,
     required_role: str | None = None,
 ) -> UserProfile:
+    """Return current dashboard user."""
     if auth_credentials is None:
         raise_unauthorized("Missing Authorization header")
 
@@ -106,6 +111,7 @@ def get_current_dashboard_user(
 
 # Raise a standard 401 response for missing or invalid dashboard credentials.
 def raise_unauthorized(detail: str) -> NoReturn:
+    """Raise unauthorized."""
     raise HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail=detail,
@@ -115,6 +121,7 @@ def raise_unauthorized(detail: str) -> NoReturn:
 
 # Raise a standard 403 response when a logged-in user has the wrong role.
 def raise_forbidden(detail: str) -> NoReturn:
+    """Raise forbidden."""
     raise HTTPException(
         status_code=status.HTTP_403_FORBIDDEN,
         detail=detail,
@@ -126,5 +133,6 @@ def require_teacher_class_access(
     current_user: UserProfile,
     class_id: str,
 ) -> None:
+    """Require teacher class access."""
     if not teacher_has_class_access(db, current_user.student_id, class_id):
         raise_forbidden("You do not have access to this class")

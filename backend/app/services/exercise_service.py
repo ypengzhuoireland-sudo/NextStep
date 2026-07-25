@@ -27,6 +27,7 @@ def list_exercises(
     difficulty: str | None = None,
     status: str | None = None,
 ) -> ExerciseListResponse:
+    """List exercises."""
     statement = select(ExerciseModel).order_by(ExerciseModel.id)
 
     if kc is not None:
@@ -56,6 +57,7 @@ def get_exercise_by_id(
     exercise_id: str,
     student_id: str = DEFAULT_STUDENT_ID,
 ) -> ExerciseDetail | None:
+    """Return exercise by id."""
     exercise = db.get(ExerciseModel, exercise_id)
 
     if exercise is None:
@@ -80,6 +82,7 @@ def get_exercise_by_id(
 
 
 def to_exercise_list_item(exercise: ExerciseModel) -> ExerciseListItem:
+    """Convert to exercise list item."""
     return ExerciseListItem(
         id=exercise.id,
         title=exercise.title,
@@ -94,6 +97,7 @@ def list_knowledge_component_tags(
     exercise_id: str,
     student_id: str = DEFAULT_STUDENT_ID,
 ) -> list[KnowledgeComponentTag]:
+    """List knowledge component tags."""
     statement = (
         select(KnowledgeComponent, StudentMastery.mastery)
         .join(ExerciseKnowledgeComponent, ExerciseKnowledgeComponent.kc_id == KnowledgeComponent.id)
@@ -123,6 +127,7 @@ def list_knowledge_component_tags(
 
 
 def build_goal(kc_tags: list[KnowledgeComponentTag]) -> str:
+    """Build goal."""
     if not kc_tags:
         return "Practice a focused Python programming concept."
 
@@ -131,6 +136,7 @@ def build_goal(kc_tags: list[KnowledgeComponentTag]) -> str:
 
 
 def build_constraints(exercise: ExerciseModel) -> list[str]:
+    """Build constraints."""
     constraints = [
         "Use Python 3 syntax.",
         f"Implement the function `{exercise.function_name}`.",
@@ -144,6 +150,7 @@ def build_constraints(exercise: ExerciseModel) -> list[str]:
 
 
 def build_examples(exercise: ExerciseModel) -> list[ExerciseExample]:
+    """Build examples."""
     return [
         ExerciseExample(
             input=format_function_call(exercise.function_name, test_case.get("input")),
@@ -158,6 +165,7 @@ def build_recommendation(
     exercise: ExerciseModel,
     kc_tags: list[KnowledgeComponentTag],
 ) -> ExerciseRecommendation:
+    """Build recommendation."""
     weakest_kc = min(kc_tags, key=lambda kc: kc.mastery, default=None)
 
     if weakest_kc is None:
@@ -176,10 +184,12 @@ def build_recommendation(
 
 
 def to_frontend_status(status: str) -> str:
+    """Convert to frontend status."""
     return "draft" if status == "draft" else "published"
 
 
 def mastery_state(mastery: float) -> str:
+    """Handle mastery state."""
     if mastery >= 0.75:
         return "mastered"
     if mastery >= 0.6:
@@ -188,11 +198,13 @@ def mastery_state(mastery: float) -> str:
 
 
 def slugify(value: str) -> str:
+    """Handle slugify."""
     slug = re.sub(r"[^a-z0-9]+", "-", value.lower()).strip("-")
     return slug or "exercise"
 
 
 def format_function_call(function_name: str, value: Any) -> str:
+    """Format function call."""
     if isinstance(value, dict):
         args = ", ".join(format_value(item) for item in value.values())
         return f"{function_name}({args})"
@@ -201,6 +213,7 @@ def format_function_call(function_name: str, value: Any) -> str:
 
 
 def format_value(value: Any) -> str:
+    """Format value."""
     if isinstance(value, str):
         return repr(value)
 

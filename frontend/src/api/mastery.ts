@@ -8,6 +8,7 @@ interface MasteryApiResponse {
   items: StudentMasteryProfile["items"];
 }
 
+/** Return student mastery. */
 export async function getStudentMastery(studentId: string): Promise<StudentMasteryProfile> {
   if (USE_MOCK_API) {
     await wait(360);

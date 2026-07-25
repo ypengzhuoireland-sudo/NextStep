@@ -586,6 +586,7 @@ export const mockClassDashboard: ClassDashboardSummary = {
   ]
 };
 
+/** Return mock kc tags. */
 function getMockKcTags(codes: string[]): KnowledgeComponent[] {
   return codes.map((code) => {
     const kc = mockSession.masteryProfile.find((item) => item.code === code);
@@ -596,6 +597,7 @@ function getMockKcTags(codes: string[]): KnowledgeComponent[] {
   });
 }
 
+/** Build class heatmap. */
 function buildClassHeatmap(studentId: string, displayName: string, masteryValues: number[]) {
   return mockSession.masteryProfile.map((kc, index) => ({
     studentId,

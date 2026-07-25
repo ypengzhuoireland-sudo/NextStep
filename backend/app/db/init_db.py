@@ -10,6 +10,7 @@ from app.db.session import SessionLocal, engine
 from app.models.bkt_parameters import KnowledgeComponentBKTParameters
 from app.models.class_enrollment import ClassEnrollment
 from app.models.exercise import Exercise, ExerciseKnowledgeComponent
+from app.models.hint_request_event import HintRequestEvent
 from app.models.knowledge_component import KnowledgeComponent
 from app.models.mastery_event import MasteryEvent
 from app.models.student_mastery import StudentMastery
@@ -23,6 +24,7 @@ DEFAULT_CLASS_ID = "demo-python-101"
 
 
 def init_db() -> None:
+    """Handle init db."""
     Base.metadata.create_all(bind=engine)
     ensure_exercise_schema()
     seed_users()
@@ -30,6 +32,7 @@ def init_db() -> None:
 
 
 def ensure_exercise_schema() -> None:
+    """Ensure exercise schema."""
     statements = [
         "ALTER TABLE users ADD COLUMN IF NOT EXISTS diagnostic_completed BOOLEAN NOT NULL DEFAULT true",
         "ALTER TABLE users ADD COLUMN IF NOT EXISTS diagnostic_completed_at TIMESTAMPTZ",
@@ -48,6 +51,7 @@ def ensure_exercise_schema() -> None:
 
 
 def seed_users() -> None:
+    """Seed users."""
     with open(USERS_PATH, "r", encoding="utf-8") as f:
         seed_data = json.load(f)
 
@@ -108,6 +112,7 @@ def seed_default_class_enrollments(db: Session) -> None:
 
 
 def seed_exercise_bank() -> None:
+    """Seed exercise bank."""
     with open(EXERCISE_BANK_PATH, "r", encoding="utf-8") as file:
         exercise_bank = json.load(file)
 
@@ -135,6 +140,7 @@ def seed_exercise_bank() -> None:
 
 
 def validate_exercise_bank(kc_ids: set[str], exercise_items: list[dict[str, Any]]) -> None:
+    """Validate exercise bank."""
     missing_kc_refs = sorted(
         {
             kc_id
@@ -153,6 +159,12 @@ def delete_stale_exercise_seed_rows(
     exercise_ids: set[str],
     kc_ids: set[str],
 ) -> None:
+    """Delete stale exercise seed rows."""
+    db.execute(
+        delete(HintRequestEvent).where(
+            HintRequestEvent.exercise_id.not_in(exercise_ids)
+        )
+    )
     db.execute(
         delete(MasteryEvent).where(
             or_(
@@ -177,6 +189,7 @@ def delete_stale_exercise_seed_rows(
 
 
 def upsert_knowledge_components(db: Session, kc_items: list[dict[str, Any]]) -> None:
+    """Handle upsert knowledge components."""
     for kc_data in kc_items:
         kc = db.get(KnowledgeComponent, kc_data["kc_id"])
 
@@ -190,6 +203,7 @@ def upsert_knowledge_components(db: Session, kc_items: list[dict[str, Any]]) -> 
 
 
 def seed_default_bkt_parameters(db: Session, kc_ids: set[str]) -> None:
+    """Seed default bkt parameters."""
     for kc_id in sorted(kc_ids):
         params = db.get(KnowledgeComponentBKTParameters, kc_id)
 
@@ -206,6 +220,7 @@ def seed_default_bkt_parameters(db: Session, kc_ids: set[str]) -> None:
 
 
 def upsert_exercises(db: Session, exercise_items: list[dict[str, Any]]) -> None:
+    """Handle upsert exercises."""
     for exercise_data in exercise_items:
         kc_tags = exercise_data["kc_tags"]
         primary_kc = kc_tags[0]
@@ -245,6 +260,7 @@ def upsert_exercises(db: Session, exercise_items: list[dict[str, Any]]) -> None:
 
 
 def seed_default_mastery(db: Session, kc_ids: set[str]) -> None:
+    """Seed default mastery."""
     student_ids = db.scalars(
         select(User.student_id)
         .where(User.is_active.is_(True))

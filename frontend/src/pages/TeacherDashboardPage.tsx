@@ -40,6 +40,7 @@ interface TeacherDashboardPageProps {
   onLogout?: () => void;
 }
 
+/** Render the teacher dashboard page interface. */
 export function TeacherDashboardPage({ onLogout }: TeacherDashboardPageProps) {
   const [summary, setSummary] = useState<ClassDashboardSummary | null>(null);
   const [loadState, setLoadState] = useState<DashboardLoadState>("idle");
@@ -57,6 +58,7 @@ export function TeacherDashboardPage({ onLogout }: TeacherDashboardPageProps) {
   useEffect(() => {
     let isMounted = true;
 
+    /** Handle load. */
     async function load() {
       setLoadState("loading");
       try {
@@ -129,6 +131,7 @@ export function TeacherDashboardPage({ onLogout }: TeacherDashboardPageProps) {
   }, [summary]);
 
   useEffect(() => {
+    /** Handle search shortcut. */
     function handleSearchShortcut(event: KeyboardEvent) {
       if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
         event.preventDefault();
@@ -526,6 +529,7 @@ export function TeacherDashboardPage({ onLogout }: TeacherDashboardPageProps) {
   );
 }
 
+/** Render the student detail drawer interface. */
 function StudentDetailDrawer({
   detail,
   error,
@@ -605,6 +609,7 @@ function StudentDetailDrawer({
   );
 }
 
+/** Render the mini metric interface. */
 function MiniMetric({ label, value }: { label: string; value: string | number }) {
   return (
     <div className="min-w-0 rounded-lg border border-white/10 bg-slate-950/25 px-2 py-2">
@@ -614,6 +619,7 @@ function MiniMetric({ label, value }: { label: string; value: string | number })
   );
 }
 
+/** Handle status variant. */
 function statusVariant(status: ExecutionStatus) {
   if (status === "passed") {
     return "green";
@@ -626,6 +632,7 @@ function statusVariant(status: ExecutionStatus) {
   return "amber";
 }
 
+/** Format class label. */
 function formatClassLabel(classId: string) {
   if (classId === "demo-python-101") {
     return "Demo Class";
@@ -638,6 +645,7 @@ function formatClassLabel(classId: string) {
     .join(" ");
 }
 
+/** Format dashboard time. */
 function formatDashboardTime(value: string) {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) {

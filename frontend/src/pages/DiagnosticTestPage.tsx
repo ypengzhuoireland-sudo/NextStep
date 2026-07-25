@@ -33,6 +33,7 @@ interface DiagnosticTestPageProps {
 
 type PageState = "loading" | "ready" | "submitting" | "skipping" | "result" | "error";
 
+/** Render the diagnostic test page interface. */
 export function DiagnosticTestPage({ onComplete }: DiagnosticTestPageProps) {
   const [assessment, setAssessment] = useState<DiagnosticQuestionResponse | null>(null);
   const [answers, setAnswers] = useState<Record<string, string>>({});
@@ -75,6 +76,7 @@ export function DiagnosticTestPage({ onComplete }: DiagnosticTestPageProps) {
     };
   }, [result]);
 
+  /** Handle submit. */
   async function submit() {
     if (!assessment) return;
     setSkippedQuestions(
@@ -92,6 +94,7 @@ export function DiagnosticTestPage({ onComplete }: DiagnosticTestPageProps) {
     }
   }
 
+  /** Skip entire diagnostic. */
   async function skipEntireDiagnostic() {
     setState("skipping");
     setError("");
@@ -104,6 +107,7 @@ export function DiagnosticTestPage({ onComplete }: DiagnosticTestPageProps) {
     }
   }
 
+  /** Select answer. */
   function selectAnswer(questionId: string, optionId: string) {
     setAnswers((current) => ({ ...current, [questionId]: optionId }));
     setSkippedQuestions((current) => {
@@ -114,6 +118,7 @@ export function DiagnosticTestPage({ onComplete }: DiagnosticTestPageProps) {
     });
   }
 
+  /** Move to next question. */
   function goToNextQuestion() {
     if (!question) return;
     if (!answers[question.id]) {
@@ -318,6 +323,7 @@ interface ResultSectionProps {
   onStart: (exerciseId?: string) => void;
 }
 
+/** Render the diagnostic results interface. */
 function DiagnosticResults({ result, strengths, developing, weaknesses, onStart }: ResultSectionProps) {
   const skippedCount = result.questionResults.filter((item) => item.skipped).length;
 
@@ -442,6 +448,7 @@ function DiagnosticResults({ result, strengths, developing, weaknesses, onStart 
   );
 }
 
+/** Render the result group interface. */
 function ResultGroup({
   title,
   items,

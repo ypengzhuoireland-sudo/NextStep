@@ -19,6 +19,7 @@ interface NextExerciseButtonProps {
   onNextExercise: () => void;
 }
 
+/** Render the next exercise button interface. */
 export function NextExerciseButton({
   exercise,
   isLoading,

@@ -3,6 +3,7 @@ import { cn } from "@/lib/utils";
 
 const Tabs = TabsPrimitive.Root;
 
+/** Render the tabs list interface. */
 function TabsList({
   className,
   ...props
@@ -18,6 +19,7 @@ function TabsList({
   );
 }
 
+/** Render the tabs trigger interface. */
 function TabsTrigger({
   className,
   ...props
@@ -33,6 +35,7 @@ function TabsTrigger({
   );
 }
 
+/** Render the tabs content interface. */
 function TabsContent({
   className,
   ...props

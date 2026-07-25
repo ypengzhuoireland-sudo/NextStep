@@ -20,6 +20,7 @@ def get_my_mastery(
     auth_credentials: HTTPAuthorizationCredentials | None = Depends(bearer_scheme),
     db: Session = Depends(get_db),
 ) -> StudentMasteryProfile:
+    """Return my mastery."""
     current_user = get_current_mastery_user(auth_credentials, db)
     profile = get_student_mastery_profile(db, current_user.student_id)
 
@@ -38,6 +39,7 @@ def get_student_mastery(
     auth_credentials: HTTPAuthorizationCredentials | None = Depends(bearer_scheme),
     db: Session = Depends(get_db),
 ) -> StudentMasteryProfile:
+    """Return student mastery."""
     current_user = get_current_mastery_user(auth_credentials, db)
 
     if current_user.role != "admin" and current_user.student_id != student_id:
@@ -61,6 +63,7 @@ def get_current_mastery_user(
     auth_credentials: HTTPAuthorizationCredentials | None,
     db: Session,
 ) -> UserProfile:
+    """Return current mastery user."""
     if auth_credentials is None:
         raise_unauthorized("Missing Authorization header")
 
@@ -73,6 +76,7 @@ def get_current_mastery_user(
 
 
 def raise_unauthorized(detail: str) -> NoReturn:
+    """Raise unauthorized."""
     raise HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail=detail,

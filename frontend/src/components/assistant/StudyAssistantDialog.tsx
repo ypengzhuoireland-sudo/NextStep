@@ -80,6 +80,7 @@ function renderAssistantMessage(text: string) {
     );
 }
 
+/** Render the study assistant dialog interface. */
 export function StudyAssistantDialog({
   currentExerciseId,
   disabled = false,

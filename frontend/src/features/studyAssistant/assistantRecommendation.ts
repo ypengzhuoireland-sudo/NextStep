@@ -66,6 +66,7 @@ const WEAKEST_PATTERNS = [
   "something useful"
 ];
 
+/** Parse assistant intent. */
 export function parseAssistantIntent(message: string): AssistantIntent {
   const normalized = normalize(message);
   const kcCode =
@@ -87,6 +88,7 @@ export function parseAssistantIntent(message: string): AssistantIntent {
   };
 }
 
+/** Recommend exercise. */
 export function recommendExercise({
   message,
   exercises,
@@ -140,6 +142,7 @@ export function recommendExercise({
   };
 }
 
+/** Score exercise. */
 function scoreExercise(
   exercise: AssistantExercise,
   targetKc: string | null,
@@ -159,6 +162,7 @@ function scoreExercise(
   return score;
 }
 
+/** Build reason. */
 function buildReason(
   exercise: AssistantExercise,
   targetKc: string | null,
@@ -178,10 +182,12 @@ function buildReason(
   return "This exercise targets one of your lowest-mastery knowledge areas.";
 }
 
+/** Handle normalize. */
 function normalize(value: string): string {
   return value.toLowerCase().replace(/[^\p{L}\p{N}-]+/gu, " ").trim();
 }
 
+/** Handle contains phrase. */
 function containsPhrase(value: string, phrase: string): boolean {
   return ` ${value} `.includes(` ${phrase} `);
 }

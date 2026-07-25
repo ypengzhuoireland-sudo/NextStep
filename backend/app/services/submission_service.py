@@ -46,6 +46,7 @@ def create_submission(
     student_id: str,
     request: SubmissionCreateRequest,
 ) -> SubmissionResponse:
+    """Create submission."""
     exercise = db.get(Exercise, request.exercise_id)
 
     if exercise is None:
@@ -102,6 +103,7 @@ def build_submission_runner_code(
     function_name: str,
     test_cases: list[dict[str, Any]],
 ) -> str:
+    """Build submission runner code."""
     return build_python_test_runner_code(student_code, function_name, test_cases)
 
 
@@ -116,6 +118,7 @@ class LegacySubmissionTestResult(BaseModel):
 
 
 def parse_runner_stdout(stdout: str) -> list[LegacySubmissionTestResult]:
+    """Parse runner stdout."""
     return [
         LegacySubmissionTestResult(
             name=str(item.get("label") or item.get("name") or ""),
@@ -131,6 +134,7 @@ def parse_runner_stdout(stdout: str) -> list[LegacySubmissionTestResult]:
 
 # Calculate a score between 0 and 1 from the number of passed test cases.
 def calculate_score(test_results: list[LegacySubmissionTestResult]) -> float:
+    """Calculate score."""
     if not test_results:
         return 0.0
 
@@ -145,6 +149,7 @@ def update_mastery_for_submission(
     exercise_id: str,
     passed: bool,
 ) -> list[MasteryDelta]:
+    """Update mastery for submission."""
     kc_ids = db.scalars(
         select(ExerciseKnowledgeComponent.kc_id).where(
             ExerciseKnowledgeComponent.exercise_id == exercise_id,
@@ -195,6 +200,7 @@ def update_mastery_for_submission(
 
 # Recommend the first exercise linked to the student's current weakest KC.
 def choose_next_exercise_id(db: Session, student_id: str) -> str | None:
+    """Choose next exercise id."""
     weakest = db.scalars(
         select(StudentMastery).where(StudentMastery.student_id == student_id).order_by(
             StudentMastery.mastery,
@@ -214,6 +220,7 @@ def choose_next_exercise_id(db: Session, student_id: str) -> str | None:
 
 
 def count_attempts(db: Session, student_id: str, exercise_id: str) -> int:
+    """Count attempts."""
     return int(
         db.scalar(
             select(func.count(Submission.id)).where(

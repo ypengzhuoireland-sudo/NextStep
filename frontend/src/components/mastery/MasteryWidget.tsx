@@ -14,6 +14,7 @@ interface MasteryWidgetProps {
   weakKcs: KnowledgeComponent[];
 }
 
+/** Render the mastery widget interface. */
 export function MasteryWidget({ masteryProfile, targetKcs, weakKcs }: MasteryWidgetProps) {
   const average =
     masteryProfile.reduce((total, kc) => total + kc.mastery, 0) / Math.max(masteryProfile.length, 1);
@@ -110,11 +111,13 @@ export function MasteryWidget({ masteryProfile, targetKcs, weakKcs }: MasteryWid
   );
 }
 
+/** Format trend. */
 function formatTrend(trend: number) {
   const rounded = Math.round(trend * 100);
   return `${rounded >= 0 ? "+" : ""}${rounded}%`;
 }
 
+/** Handle trend tone. */
 function trendTone(trend: number) {
   if (trend > 0) {
     return "text-emerald-100";

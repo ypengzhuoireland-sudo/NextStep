@@ -19,6 +19,7 @@ def submit_code(
     current_user: UserProfile = Depends(require_student_user),
     db: Session = Depends(get_db),
 ) -> SubmissionResponse:
+    """Submit code."""
     try:
         return create_submission(db, current_user.student_id, request)
     except ExecutionServiceError as exc:

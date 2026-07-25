@@ -6,6 +6,7 @@ interface MasteryRingProps {
   label: string;
 }
 
+/** Render the mastery ring interface. */
 export function MasteryRing({ value, label }: MasteryRingProps) {
   const radius = 42;
   const circumference = 2 * Math.PI * radius;

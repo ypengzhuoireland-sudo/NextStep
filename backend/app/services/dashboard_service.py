@@ -34,6 +34,7 @@ from app.services.recommendation_service import choose_recommended_exercise
 
 # Build the dashboard response using the authenticated user and PostgreSQL data.
 def build_dashboard_response(db: Session, current_user: UserProfile) -> DashboardResponse:
+    """Build dashboard response."""
     kcs = list_dashboard_mastery(db, current_user.student_id)
     exercises = list_dashboard_exercises(db)
     mastery_average = round(sum(kc.mastery for kc in kcs) / len(kcs), 2) if kcs else 0.0
@@ -58,6 +59,7 @@ def build_dashboard_response(db: Session, current_user: UserProfile) -> Dashboar
 
 # Read the current student's KC mastery values from PostgreSQL.
 def list_dashboard_mastery(db: Session, student_id: str) -> list[KnowledgeComponent]:
+    """List dashboard mastery."""
     rows = db.execute(
         select(
             KnowledgeComponentModel.id,
@@ -88,6 +90,7 @@ def list_dashboard_mastery(db: Session, student_id: str) -> list[KnowledgeCompon
 
 # Read exercise summaries from PostgreSQL for the dashboard queue.
 def list_dashboard_exercises(db: Session) -> list[Exercise]:
+    """List dashboard exercises."""
     exercises = db.scalars(select(ExerciseModel).order_by(ExerciseModel.id)).all()
 
     return [
@@ -105,6 +108,7 @@ def list_dashboard_exercises(db: Session) -> list[Exercise]:
 
 
 def build_class_dashboard_summary(db: Session, class_id: str) -> ClassDashboardSummary:
+    """Build class dashboard summary."""
     users = db.scalars(
         select(User)
         .join(ClassEnrollment, ClassEnrollment.user_id == User.student_id)
@@ -174,6 +178,7 @@ def count_submissions_since(
     since: datetime,
     student_ids: list[str] | None = None,
 ) -> int:
+    """Count submissions since."""
     statement = select(Submission.created_at)
     if student_ids is not None:
         statement = statement.where(Submission.student_id.in_(student_ids))
@@ -188,6 +193,7 @@ def build_recent_submissions(
     limit: int = 10,
     student_ids: list[str] | None = None,
 ) -> list[RecentSubmission]:
+    """Build recent submissions."""
     statement = (
         select(Submission, User.name, ExerciseModel.title, ExerciseModel.kc_id)
         .join(User, User.student_id == Submission.student_id)
@@ -225,6 +231,7 @@ def build_risk_students(
     mastery_by_student_kc: dict[tuple[str, str], float],
     student_averages: dict[str, float],
 ) -> list[RiskStudent]:
+    """Build risk students."""
     risk_students: list[RiskStudent] = []
 
     for user in users:
@@ -259,6 +266,7 @@ def build_weak_kcs(
     kcs: list[KnowledgeComponentModel],
     mastery_by_student_kc: dict[tuple[str, str], float],
 ) -> list[WeakKcSummary]:
+    """Build weak kcs."""
     weak_kcs = [
         WeakKcSummary(
             kc_code=kc.id,
@@ -281,6 +289,7 @@ def build_weak_kcs(
 
 
 def average(values: Iterable[float]) -> float:
+    """Handle average."""
     items = list(values)
 
     if not items:
@@ -290,10 +299,12 @@ def average(values: Iterable[float]) -> float:
 
 
 def count_passed_tests(test_results: list[dict] | None) -> int:
+    """Count passed tests."""
     return sum(1 for result in test_results or [] if result.get("passed") is True)
 
 
 def submission_status(submission: Submission) -> str:
+    """Handle submission status."""
     if submission.passed:
         return "passed"
 
@@ -304,11 +315,13 @@ def submission_status(submission: Submission) -> str:
 
 
 def format_submission_time(created_at: datetime) -> str:
+    """Format submission time."""
     normalised = normalise_datetime(created_at)
     return normalised.strftime("%d %b %H:%M")
 
 
 def normalise_datetime(value: datetime) -> datetime:
+    """Normalise datetime."""
     if value.tzinfo is None:
         return value.replace(tzinfo=timezone.utc)
 
@@ -316,6 +329,7 @@ def normalise_datetime(value: datetime) -> datetime:
 
 
 def teacher_has_class_access(db: Session, teacher_id: str, class_id: str) -> bool:
+    """Handle teacher has class access."""
     return db.get(ClassEnrollment, (class_id, teacher_id)) is not None
 
 
@@ -328,6 +342,7 @@ def list_class_students(
     limit: int = 20,
     offset: int = 0,
 ) -> ClassStudentDirectoryResponse:
+    """List class students."""
     statement = (
         select(User)
         .join(ClassEnrollment, ClassEnrollment.user_id == User.student_id)
@@ -379,6 +394,7 @@ def get_class_student_detail(
     class_id: str,
     student_id: str,
 ) -> ClassStudentDetailResponse | None:
+    """Return class student detail."""
     user = db.scalar(
         select(User)
         .join(ClassEnrollment, ClassEnrollment.user_id == User.student_id)
@@ -430,6 +446,7 @@ def load_mastery_by_student(
     db: Session,
     student_ids: list[str],
 ) -> dict[str, list[KnowledgeComponent]]:
+    """Load mastery by student."""
     profiles = {student_id: [] for student_id in student_ids}
     if not student_ids:
         return profiles
@@ -469,6 +486,7 @@ def load_last_active_by_student(
     db: Session,
     student_ids: list[str],
 ) -> dict[str, datetime]:
+    """Load last active by student."""
     if not student_ids:
         return {}
     rows = db.execute(
@@ -484,6 +502,7 @@ def build_directory_item(
     mastery_profile: list[KnowledgeComponent],
     last_active_at: datetime | None,
 ) -> ClassStudentDirectoryItem:
+    """Build directory item."""
     average_mastery = average(item.mastery for item in mastery_profile)
     weakest = min(mastery_profile, key=lambda item: item.mastery, default=None)
     return ClassStudentDirectoryItem(

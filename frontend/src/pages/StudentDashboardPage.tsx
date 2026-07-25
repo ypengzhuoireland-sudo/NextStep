@@ -25,6 +25,7 @@ interface StudentDashboardPageProps {
   onLogout?: () => void;
 }
 
+/** Render the student dashboard page interface. */
 export function StudentDashboardPage({ onOpenPractice, onLogout }: StudentDashboardPageProps) {
   const [summary, setSummary] = useState<StudentDashboardSummary | null>(null);
   const [loadState, setLoadState] = useState<DashboardLoadState>("idle");
@@ -32,6 +33,7 @@ export function StudentDashboardPage({ onOpenPractice, onLogout }: StudentDashbo
   useEffect(() => {
     let isMounted = true;
 
+    /** Handle load. */
     async function load() {
       setLoadState("loading");
       try {

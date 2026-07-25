@@ -31,6 +31,7 @@ FRONTEND_DIST = Path(__file__).resolve().parents[1] / "static"
 
 
 def get_allowed_origins() -> list[str]:
+    """Return allowed origins."""
     configured_origins = [
         origin.strip().rstrip("/")
         for origin in os.getenv("ALLOWED_ORIGINS", "").split(",")
@@ -72,10 +73,12 @@ if FRONTEND_DIST.exists():
 
     @app.get("/", include_in_schema=False)
     def frontend_index():
+        """Handle frontend index."""
         return FileResponse(FRONTEND_DIST / "index.html")
 
     @app.get("/{full_path:path}", include_in_schema=False)
     def frontend_app(full_path: str):
+        """Handle frontend app."""
         if full_path.startswith(("api/", "docs", "openapi.json", "redoc")):
             raise HTTPException(status_code=404)
 
@@ -87,4 +90,5 @@ if FRONTEND_DIST.exists():
 else:
     @app.get("/")
     def root():
+        """Handle root."""
         return RedirectResponse(url="/docs")

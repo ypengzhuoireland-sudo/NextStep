@@ -20,6 +20,7 @@ revoked_access_tokens: set[str] = set()
 
 
 def get_user_from_access_token(db: Session, token: str) -> UserProfile | None:
+    """Return user from access token."""
     if is_access_token_revoked(token):
         return None
 
@@ -37,26 +38,32 @@ def get_user_from_access_token(db: Session, token: str) -> UserProfile | None:
 
 
 def revoke_access_token(token: str) -> None:
+    """Handle revoke access token."""
     revoked_access_tokens.add(token)
 
 
 def is_access_token_revoked(token: str) -> bool:
+    """Check whether access token revoked."""
     return token in revoked_access_tokens
 
 
 def find_user_by_username(db: Session, username: str) -> User | None:
+    """Find user by username."""
     return db.scalar(select(User).filter_by(username=username))
 
 
 def find_active_user_by_username(db: Session, username: str) -> User | None:
+    """Find active user by username."""
     return db.scalar(select(User).filter_by(username=username, is_active=True))
 
 
 def find_active_user_by_student_id(db: Session, student_id: str) -> User | None:
+    """Find active user by student id."""
     return db.scalar(select(User).filter_by(student_id=student_id, is_active=True))
 
 
 def verify_password(password: str, salt: str, expected_hash: str) -> bool:
+    """Handle verify password."""
     salt_bytes = decode_base64url(salt)
     actual_hash = hash_password(password, salt_bytes)
 
@@ -64,6 +71,7 @@ def verify_password(password: str, salt: str, expected_hash: str) -> bool:
 
 
 def hash_password(password: str, salt: bytes) -> str:
+    """Handle hash password."""
     password_hash = hashlib.pbkdf2_hmac(
         "sha256",
         password.encode("utf-8"),
@@ -74,6 +82,7 @@ def hash_password(password: str, salt: bytes) -> str:
 
 
 def create_token(user: User, token_type: str) -> str:
+    """Create token."""
     now = int(time.time())
     ttl = (
         settings.access_token_expires_seconds
@@ -95,6 +104,7 @@ def create_token(user: User, token_type: str) -> str:
 
 
 def encode_jwt(payload: dict[str, Any]) -> str:
+    """Encode jwt."""
     header = {"alg": JWT_ALGORITHM, "typ": "JWT"}
     header_segment = encode_base64url(json.dumps(header, separators=(",", ":")).encode("utf-8"))
     payload_segment = encode_base64url(json.dumps(payload, separators=(",", ":")).encode("utf-8"))
@@ -105,6 +115,7 @@ def encode_jwt(payload: dict[str, Any]) -> str:
 
 
 def decode_token(token: str) -> dict[str, Any] | None:
+    """Decode token."""
     parts = token.split(".")
 
     if len(parts) != 3:
@@ -139,6 +150,7 @@ def decode_token(token: str) -> dict[str, Any] | None:
 
 
 def to_user_profile(user: User) -> UserProfile:
+    """Convert to user profile."""
     return UserProfile(
         student_id=user.student_id,
         username=user.username,
@@ -148,9 +160,11 @@ def to_user_profile(user: User) -> UserProfile:
 
 
 def encode_base64url(value: bytes) -> str:
+    """Encode base64url."""
     return base64.urlsafe_b64encode(value).decode("utf-8").rstrip("=")
 
 
 def decode_base64url(value: str) -> bytes:
+    """Decode base64url."""
     padding = "=" * (-len(value) % 4)
     return base64.urlsafe_b64decode(value + padding)

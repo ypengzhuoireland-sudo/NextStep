@@ -27,6 +27,7 @@ def build_next_recommendation(
     request: NextRecommendationRequest,
     student_id: str,
 ) -> NextRecommendationResponse:
+    """Build next recommendation."""
     weakest = db.scalars(
         select(StudentMastery)
         .where(StudentMastery.student_id == student_id)
@@ -107,6 +108,7 @@ def build_next_recommendation(
 def build_recommendation_reason_from_ai_response(
     explanation: RecommendationExplanationResponse,
 ) -> str:
+    """Build recommendation reason from ai response."""
     return explanation.student_friendly_reason or explanation.reason
 
 
@@ -118,6 +120,7 @@ def build_ai_recommendation_reason(
     confidence: float,
     fallback_reason: str,
 ) -> str:
+    """Build ai recommendation reason."""
     ai_request = RecommendationExplanationRequest(
         student_id=student_id,
         current_exercise=CurrentExercise(id=exercise.id, title=exercise.title),
@@ -141,6 +144,7 @@ def build_ai_recommendation_reason(
 
 
 def get_mastery_profile_map(db: Session, student_id: str) -> dict[str, float]:
+    """Return mastery profile map."""
     rows = db.execute(
         select(StudentMastery.kc_id, StudentMastery.mastery)
         .where(StudentMastery.student_id == student_id)

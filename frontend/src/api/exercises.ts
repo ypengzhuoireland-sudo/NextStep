@@ -19,6 +19,7 @@ interface ExerciseListApiResponse {
   total: number;
 }
 
+/** Return exercises. */
 export async function getExercises(query: ExerciseQuery = {}): Promise<ExerciseListResponse> {
   if (USE_MOCK_API) {
     await wait(340);
@@ -73,6 +74,7 @@ export async function getExercises(query: ExerciseQuery = {}): Promise<ExerciseL
   };
 }
 
+/** Return exercise by id. */
 export async function getExerciseById(exerciseId: string): Promise<Exercise> {
   if (USE_MOCK_API) {
     await wait(260);

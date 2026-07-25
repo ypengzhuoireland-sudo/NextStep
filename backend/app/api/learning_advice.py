@@ -20,6 +20,7 @@ def current_student_learning_advice(
     auth_credentials: HTTPAuthorizationCredentials | None = Depends(bearer_scheme),
     db: Session = Depends(get_db),
 ) -> LearningAdviceResponse:
+    """Handle current student learning advice."""
     current_user = get_current_learning_advice_user(auth_credentials, db)
     return build_student_learning_advice(db, current_user.student_id)
 
@@ -29,6 +30,7 @@ def student_learning_advice(
     student_id: str,
     db: Session = Depends(get_db),
 ) -> LearningAdviceResponse:
+    """Handle student learning advice."""
     return build_student_learning_advice(db, student_id)
 
 
@@ -36,6 +38,7 @@ def get_current_learning_advice_user(
     auth_credentials: HTTPAuthorizationCredentials | None,
     db: Session,
 ) -> UserProfile:
+    """Return current learning advice user."""
     if auth_credentials is None:
         raise_unauthorized("Missing Authorization header")
 
@@ -48,6 +51,7 @@ def get_current_learning_advice_user(
 
 
 def raise_unauthorized(detail: str) -> NoReturn:
+    """Raise unauthorized."""
     raise HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail=detail,

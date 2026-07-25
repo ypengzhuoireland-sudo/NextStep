@@ -17,7 +17,11 @@ interface LearningAnalyticsProps {
   data: DashboardPoint[];
 }
 
+/** Render the learning analytics interface. */
 export function LearningAnalytics({ data }: LearningAnalyticsProps) {
+  const hasSingleDataPoint = data.length === 1;
+  const hasHintData = data.some((point) => point.hints > 0);
+
   return (
     <Card className="overflow-hidden">
       <CardHeader className="border-b border-white/10">
@@ -52,6 +56,7 @@ export function LearningAnalytics({ data }: LearningAnalyticsProps) {
               <XAxis dataKey="name" tick={{ fill: "#94a3b8", fontSize: 11 }} axisLine={false} tickLine={false} />
               <YAxis tick={{ fill: "#94a3b8", fontSize: 11 }} axisLine={false} tickLine={false} />
               <Tooltip
+                cursor={{ fill: "rgba(96, 165, 250, 0.10)" }}
                 contentStyle={{
                   background: "rgba(2, 6, 23, 0.95)",
                   border: "1px solid rgba(255,255,255,0.1)",
@@ -73,11 +78,22 @@ export function LearningAnalytics({ data }: LearningAnalyticsProps) {
         <div className="h-64 min-w-0 rounded-lg border border-white/10 bg-white/[0.035] p-3">
           <div className="mb-3 text-xs font-medium uppercase text-slate-500">Attempts & Hints</div>
           <ResponsiveContainer width="100%" height="86%">
-            <BarChart data={data} margin={{ left: -18, right: 8, top: 8, bottom: 0 }}>
+            <BarChart
+              data={data}
+              margin={{ left: -18, right: 8, top: 8, bottom: 0 }}
+              barCategoryGap={hasSingleDataPoint ? "70%" : "28%"}
+              barSize={hasSingleDataPoint ? 56 : undefined}
+            >
               <CartesianGrid stroke="rgba(148,163,184,0.12)" vertical={false} />
-              <XAxis dataKey="name" tick={{ fill: "#94a3b8", fontSize: 11 }} axisLine={false} tickLine={false} />
+              <XAxis
+                dataKey="name"
+                tick={{ fill: "#94a3b8", fontSize: 11 }}
+                axisLine={false}
+                tickLine={false}
+              />
               <YAxis tick={{ fill: "#94a3b8", fontSize: 11 }} axisLine={false} tickLine={false} />
               <Tooltip
+                cursor={false}
                 contentStyle={{
                   background: "rgba(2, 6, 23, 0.95)",
                   border: "1px solid rgba(255,255,255,0.1)",
@@ -86,7 +102,9 @@ export function LearningAnalytics({ data }: LearningAnalyticsProps) {
                 }}
               />
               <Bar dataKey="attempts" fill="#8b5cf6" radius={[6, 6, 0, 0]} />
-              <Bar dataKey="hints" fill="#34d399" radius={[6, 6, 0, 0]} />
+              {hasHintData ? (
+                <Bar dataKey="hints" fill="#34d399" radius={[6, 6, 0, 0]} />
+              ) : null}
             </BarChart>
           </ResponsiveContainer>
         </div>

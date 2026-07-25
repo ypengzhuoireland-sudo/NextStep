@@ -8,6 +8,7 @@ interface LearningPathProps {
   items: LearningPathItem[];
 }
 
+/** Render the learning path interface. */
 export function LearningPath({ items }: LearningPathProps) {
   return (
     <Card>

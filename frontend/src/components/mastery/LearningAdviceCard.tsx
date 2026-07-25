@@ -10,6 +10,7 @@ interface LearningAdviceCardProps {
   isLoading: boolean;
 }
 
+/** Render the learning advice card interface. */
 export function LearningAdviceCard({ advice, isLoading }: LearningAdviceCardProps) {
   return (
     <Card>
@@ -22,6 +23,7 @@ export function LearningAdviceCard({ advice, isLoading }: LearningAdviceCardProp
   );
 }
 
+/** Render the learning advice section interface. */
 export function LearningAdviceSection({ advice, isLoading }: LearningAdviceCardProps) {
   return (
     <section className="overflow-hidden rounded-lg border border-violet-300/15 bg-violet-300/[0.07]">
@@ -38,6 +40,7 @@ interface LearningAdviceHeaderProps {
   className?: string;
 }
 
+/** Render the learning advice header interface. */
 function LearningAdviceHeader({ isLoading, className }: LearningAdviceHeaderProps) {
   return (
     <CardHeader className={cn(className)}>
@@ -56,6 +59,7 @@ function LearningAdviceHeader({ isLoading, className }: LearningAdviceHeaderProp
   );
 }
 
+/** Render the learning advice body interface. */
 function LearningAdviceBody({ advice, isLoading }: LearningAdviceCardProps) {
   return (
     <div className="space-y-4">
@@ -111,6 +115,7 @@ interface AdviceListProps {
   ordered?: boolean;
 }
 
+/** Render the advice list interface. */
 function AdviceList({ icon, label, items, ordered = false }: AdviceListProps) {
   if (!items.length) {
     return null;

@@ -18,11 +18,14 @@ interface CurrentExerciseApiResponse {
   dashboardSeries: Array<{
     label: string;
     masteryAverage: number;
+    attempts: number;
+    hints: number;
   }>;
   latestResult: PracticeSession["latestResult"];
   hintMessages: PracticeSession["hintMessages"];
 }
 
+/** Create session. */
 export async function createSession(
   request: SessionCreateRequest = {}
 ): Promise<SessionCreateResponse> {
@@ -55,6 +58,7 @@ export async function createSession(
   };
 }
 
+/** Return current practice session. */
 export async function getCurrentPracticeSession(
   sessionId?: string
 ): Promise<PracticeSession> {
@@ -98,8 +102,8 @@ export async function getCurrentPracticeSession(
       (item) => ({
         name: item.label,
         mastery: item.masteryAverage,
-        attempts: 0,
-        hints: 0
+        attempts: item.attempts,
+        hints: item.hints
       })
     ),
     latestResult: response.latestResult,

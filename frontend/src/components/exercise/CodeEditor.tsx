@@ -9,7 +9,6 @@ import {
   Play,
   RotateCcw,
   Send,
-  Settings2,
   Sparkles
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -28,6 +27,7 @@ interface CodeEditorProps {
   onSubmit: () => void;
 }
 
+/** Render the code editor interface. */
 export function CodeEditor({
   code,
   starterCode,
@@ -41,7 +41,7 @@ export function CodeEditor({
   const busy = isRunning || isSubmitting;
 
   return (
-    <div className="glass-panel flex min-h-[620px] flex-col overflow-hidden rounded-lg">
+    <div className="glass-panel flex min-h-[620px] flex-col overflow-hidden rounded-lg xl:h-full xl:min-h-0">
       <div className="flex min-h-14 flex-wrap items-center justify-between gap-3 border-b border-white/10 px-3 py-2">
         <div className="flex items-center gap-2">
           <div className="grid h-9 w-9 place-items-center rounded-lg border border-white/10 bg-white/[0.06]">
@@ -70,15 +70,6 @@ export function CodeEditor({
               <TooltipContent>Reset code</TooltipContent>
             </Tooltip>
 
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button variant="ghost" size="icon" aria-label="Editor settings">
-                  <Settings2 className="h-4 w-4" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>Editor settings</TooltipContent>
-            </Tooltip>
-
             <Button variant="terminal" onClick={onRun} disabled={busy}>
               {isRunning ? <Loader2 className="h-4 w-4 animate-spin" /> : <Play className="h-4 w-4" />}
               Run Code
@@ -91,9 +82,9 @@ export function CodeEditor({
         </TooltipProvider>
       </div>
 
-      <div className="relative h-[520px] flex-1">
+      <div className="relative min-h-[520px] flex-1 xl:min-h-0">
         <Editor
-          height="520px"
+          height="100%"
           defaultLanguage="python"
           value={code}
           theme="vs-dark"
@@ -158,6 +149,7 @@ export function CodeEditor({
   );
 }
 
+/** Render the editor status overlay interface. */
 function EditorStatusOverlay({
   tone,
   children
@@ -187,6 +179,7 @@ function EditorStatusOverlay({
   );
 }
 
+/** Format mastery delta. */
 function formatMasteryDelta(result: SubmissionResult) {
   if (!result.masteryDelta.length) {
     return "mastery unchanged";
@@ -206,6 +199,7 @@ function formatMasteryDelta(result: SubmissionResult) {
   return `${rounded > 0 ? "+" : ""}${rounded}% mastery`;
 }
 
+/** Handle mastery delta tone. */
 function masteryDeltaTone(result: SubmissionResult) {
   const text = formatMasteryDelta(result);
 
@@ -220,6 +214,7 @@ function masteryDeltaTone(result: SubmissionResult) {
   return "text-slate-400";
 }
 
+/** Render the editor loading interface. */
 function EditorLoading() {
   return (
     <div className="flex h-full items-center justify-center bg-slate-950">

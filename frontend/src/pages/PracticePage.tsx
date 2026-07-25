@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+import { useState } from "react";
 import { AlertTriangle } from "lucide-react";
 import { StudyAssistantDialog } from "@/components/assistant/StudyAssistantDialog";
 import { LearningAnalytics } from "@/components/dashboard/LearningAnalytics";
@@ -12,6 +13,7 @@ import { SubmitResultPanel } from "@/components/exercise/SubmitResultPanel";
 import { LearningPath } from "@/components/mastery/LearningPath";
 import { MasteryWidget } from "@/components/mastery/MasteryWidget";
 import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { usePracticeSession } from "@/hooks/usePracticeSession";
 
 interface PracticePageProps {
@@ -25,6 +27,7 @@ interface PracticePageProps {
 // Keep the MVP AI assistant visible without requiring a local .env flag.
 const SHOW_AI_ASSISTANT = true;
 
+/** Render the practice page interface. */
 export function PracticePage({
   onOpenDashboard,
   initialExerciseId,
@@ -32,6 +35,8 @@ export function PracticePage({
   dashboardLabel,
   learnerLabel
 }: PracticePageProps) {
+  const [isExercisePanelCollapsed, setIsExercisePanelCollapsed] = useState(false);
+  const [rightPanel, setRightPanel] = useState<"help" | "progress" | "path">("help");
   const {
     session,
     code,
@@ -92,17 +97,23 @@ export function PracticePage({
           initial={{ opacity: 0, y: 14 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.45, ease: "easeOut" }}
-          className="grid grid-cols-1 gap-4 xl:grid-cols-[360px_minmax(0,1fr)_380px]"
+          className={`grid grid-cols-1 items-start gap-4 xl:items-stretch ${
+            isExercisePanelCollapsed
+              ? "xl:grid-cols-[64px_minmax(0,1fr)_380px]"
+              : "xl:grid-cols-[360px_minmax(0,1fr)_380px]"
+          }`}
         >
-          <div className="min-w-0">
+          <div className="min-w-0 xl:h-[min(860px,calc(100vh-11rem))] xl:min-h-0">
             <ExercisePanel
               exercise={session.exercise}
               learningAdvice={learningAdvice}
               isLearningAdviceLoading={isLearningAdviceLoading}
+              collapsed={isExercisePanelCollapsed}
+              onToggleCollapsed={() => setIsExercisePanelCollapsed((collapsed) => !collapsed)}
             />
           </div>
 
-          <div className="min-w-0">
+          <div className="min-w-0 xl:h-[min(860px,calc(100vh-11rem))] xl:min-h-0">
             <CodeEditor
               code={code}
               starterCode={session.exercise.starterCode}
@@ -115,27 +126,46 @@ export function PracticePage({
             />
           </div>
 
-          <aside className="grid min-w-0 content-start gap-4">
-            <NextExerciseButton
-              exercise={session.exercise}
-              isLoading={isRecommending}
-              disabled={isRunning || isSubmitting || isHinting}
-              canGoPrevious={canGoPrevious}
-              onPreviousExercise={handlePreviousExercise}
-              onNextExercise={handleNextExercise}
-            />
-            <MasteryWidget
-              masteryProfile={session.masteryProfile}
-              targetKcs={session.exercise.kcTags}
-              weakKcs={weakKcs}
-            />
-            <HintPanel
-              messages={session.hintMessages}
-              isHinting={isHinting}
-              hintingLevel={hintingLevel}
-              onRequestHint={handleHint}
-            />
-            <LearningPath items={session.learningPath} />
+          <aside className="flex min-h-0 min-w-0 flex-col gap-4 xl:h-[min(860px,calc(100vh-11rem))]">
+            <Tabs
+              value={rightPanel}
+              onValueChange={(value) => setRightPanel(value as "help" | "progress" | "path")}
+              className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-lg border border-white/10 bg-slate-950/45 p-3"
+            >
+              <TabsList className="grid w-full grid-cols-3">
+                <TabsTrigger value="help">Help</TabsTrigger>
+                <TabsTrigger value="progress">Progress</TabsTrigger>
+                <TabsTrigger value="path">Path</TabsTrigger>
+              </TabsList>
+              <TabsContent value="help" className="h-0 min-h-0 flex-1 overflow-y-auto overscroll-contain pr-1">
+                <HintPanel
+                  messages={session.hintMessages}
+                  isHinting={isHinting}
+                  hintingLevel={hintingLevel}
+                  onRequestHint={handleHint}
+                />
+              </TabsContent>
+              <TabsContent value="progress" className="h-0 min-h-0 flex-1 overflow-y-auto overscroll-contain pr-1">
+                <MasteryWidget
+                  masteryProfile={session.masteryProfile}
+                  targetKcs={session.exercise.kcTags}
+                  weakKcs={weakKcs}
+                />
+              </TabsContent>
+              <TabsContent value="path" className="h-0 min-h-0 flex-1 overflow-y-auto overscroll-contain pr-1">
+                <div className="space-y-3">
+                  <NextExerciseButton
+                    exercise={session.exercise}
+                    isLoading={isRecommending}
+                    disabled={isRunning || isSubmitting || isHinting}
+                    canGoPrevious={canGoPrevious}
+                    onPreviousExercise={handlePreviousExercise}
+                    onNextExercise={handleNextExercise}
+                  />
+                  <LearningPath items={session.learningPath} />
+                </div>
+              </TabsContent>
+            </Tabs>
           </aside>
         </motion.section>
 

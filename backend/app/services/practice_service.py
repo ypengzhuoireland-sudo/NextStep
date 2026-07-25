@@ -1,4 +1,5 @@
-from datetime import datetime, timezone
+from collections import defaultdict
+from datetime import date, datetime, timezone
 import json
 import secrets
 
@@ -6,7 +7,9 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.models.exercise import Exercise, ExerciseKnowledgeComponent
+from app.models.hint_request_event import HintRequestEvent
 from app.models.knowledge_component import KnowledgeComponent
+from app.models.mastery_event import MasteryEvent
 from app.models.student_mastery import StudentMastery
 from app.models.submission import Submission
 from app.schemas.mastery import StudentMasteryProfile
@@ -43,6 +46,7 @@ def create_practice_session(
     request: PracticeSessionCreateRequest,
     current_user: UserProfile,
 ) -> PracticeSessionCreateResponse:
+    """Create practice session."""
     student_id = resolve_student_id(current_user)
     experiment_group = request.preferred_group or DEFAULT_EXPERIMENT_GROUP
 
@@ -58,6 +62,7 @@ def build_current_exercise_response(
     session_id: str,
     current_user: UserProfile,
 ) -> CurrentExerciseResponse:
+    """Build current exercise response."""
     student_id = resolve_student_id(current_user)
     mastery_profile = get_student_mastery_profile(db, student_id)
 
@@ -78,12 +83,7 @@ def build_current_exercise_response(
         exercise=exercise,
         masteryProfile=mastery_profile.items,
         learningPath=build_learning_path(db, student_id),
-        dashboardSeries=[
-            DashboardSeriesPoint(
-                label="Current",
-                masteryAverage=calculate_mastery_average(mastery_profile),
-            )
-        ],
+        dashboardSeries=build_dashboard_series(db, student_id, mastery_profile),
         latestResult=None,
         hintMessages=[],
     )
@@ -94,6 +94,7 @@ def build_hint_message(
     request: HintRequest,
     current_user: UserProfile,
 ) -> HintMessage:
+    """Build hint message."""
     exercise = db.get(Exercise, request.exercise_id)
 
     if exercise is None:
@@ -109,7 +110,16 @@ def build_hint_message(
     except LLMGenerationError:
         ai_hint = build_static_hint_fallback(exercise, ai_request)
 
-    return build_hint_message_from_ai_response(session_id, student_id, exercise.id, ai_hint)
+    message = build_hint_message_from_ai_response(session_id, student_id, exercise.id, ai_hint)
+    db.add(
+        HintRequestEvent(
+            student_id=student_id,
+            exercise_id=exercise.id,
+            level=level,
+        )
+    )
+    db.commit()
+    return message
 
 
 def build_hint_message_from_ai_response(
@@ -118,6 +128,7 @@ def build_hint_message_from_ai_response(
     exercise_id: str,
     hint: AIHintResponse,
 ) -> HintMessage:
+    """Build hint message from ai response."""
     return HintMessage(
         id=f"hint_{session_id}_{student_id}_{exercise_id}_{hint.level}",
         role="assistant",
@@ -137,6 +148,7 @@ def build_ai_hint_request(
     student_id: str,
     level: int,
 ) -> AIHintRequest:
+    """Build ai hint request."""
     return AIHintRequest(
         exercise=ExerciseContext(
             id=exercise.id,
@@ -153,6 +165,7 @@ def build_ai_hint_request(
 
 
 def build_static_hint_fallback(exercise: Exercise, request: AIHintRequest) -> AIHintResponse:
+    """Build static hint fallback."""
     hints = exercise.hints or []
 
     if hints:
@@ -173,6 +186,7 @@ def build_static_hint_fallback(exercise: Exercise, request: AIHintRequest) -> AI
 
 
 def get_exercise_kc_tags(db: Session, exercise: Exercise) -> list[str]:
+    """Return exercise kc tags."""
     kc_tags = db.scalars(
         select(ExerciseKnowledgeComponent.kc_id)
         .where(ExerciseKnowledgeComponent.exercise_id == exercise.id)
@@ -183,6 +197,7 @@ def get_exercise_kc_tags(db: Session, exercise: Exercise) -> list[str]:
 
 
 def build_exercise_examples(exercise: Exercise) -> list[dict[str, str]]:
+    """Build exercise examples."""
     examples: list[dict[str, str]] = []
     for case in (exercise.test_cases or [])[:3]:
         examples.append(
@@ -203,6 +218,7 @@ def get_latest_student_code(
     student_id: str,
     exercise_id: str,
 ) -> str:
+    """Return latest student code."""
     submission = find_submission_for_hint(db, request, student_id, exercise_id)
     return "" if submission is None else submission.code
 
@@ -213,6 +229,7 @@ def get_latest_submission_result(
     student_id: str,
     exercise_id: str,
 ) -> LatestResult | None:
+    """Return latest submission result."""
     submission = find_submission_for_hint(db, request, student_id, exercise_id)
     if submission is None:
         return None
@@ -244,6 +261,7 @@ def find_submission_for_hint(
     student_id: str,
     exercise_id: str,
 ) -> Submission | None:
+    """Find submission for hint."""
     submission_id = parse_submission_id(request.latest_submission_id)
     if submission_id is not None:
         return db.get(Submission, submission_id)
@@ -259,6 +277,7 @@ def find_submission_for_hint(
 
 
 def parse_submission_id(value: str | None) -> int | None:
+    """Parse submission id."""
     if not value:
         return None
 
@@ -267,6 +286,7 @@ def parse_submission_id(value: str | None) -> int | None:
 
 
 def get_mastery_context(db: Session, student_id: str, exercise: Exercise) -> dict[str, float]:
+    """Return mastery context."""
     kc_tags = get_exercise_kc_tags(db, exercise)
     rows = db.execute(
         select(StudentMastery.kc_id, StudentMastery.mastery).where(
@@ -279,10 +299,12 @@ def get_mastery_context(db: Session, student_id: str, exercise: Exercise) -> dic
 
 
 def resolve_student_id(current_user: UserProfile) -> str:
+    """Handle resolve student id."""
     return current_user.student_id
 
 
 def choose_recommended_exercise_id(db: Session, student_id: str) -> str | None:
+    """Choose recommended exercise id."""
     weakest_mastery = db.scalar(
         select(StudentMastery)
         .where(StudentMastery.student_id == student_id)
@@ -304,6 +326,7 @@ def choose_recommended_exercise_id(db: Session, student_id: str) -> str | None:
 
 
 def build_learning_path(db: Session, student_id: str) -> list[LearningPathItem]:
+    """Build learning path."""
     rows = db.execute(
         select(
             StudentMastery.kc_id,
@@ -328,6 +351,7 @@ def build_learning_path(db: Session, student_id: str) -> list[LearningPathItem]:
 
 
 def find_first_exercise_for_kc(db: Session, kc_id: str) -> str | None:
+    """Find first exercise for kc."""
     return db.scalar(
         select(Exercise.id)
         .join(ExerciseKnowledgeComponent, ExerciseKnowledgeComponent.exercise_id == Exercise.id)
@@ -337,7 +361,98 @@ def find_first_exercise_for_kc(db: Session, kc_id: str) -> str | None:
 
 
 def calculate_mastery_average(profile: StudentMasteryProfile) -> float:
+    """Calculate mastery average."""
     if not profile.items:
         return 0.0
 
     return round(sum(item.mastery for item in profile.items) / len(profile.items), 2)
+
+
+def build_dashboard_series(
+    db: Session,
+    student_id: str,
+    mastery_profile: StudentMasteryProfile,
+) -> list[DashboardSeriesPoint]:
+    """Build dashboard series."""
+    submissions = db.scalars(
+        select(Submission)
+        .where(Submission.student_id == student_id)
+        .order_by(Submission.created_at, Submission.id)
+    ).all()
+    mastery_events = db.scalars(
+        select(MasteryEvent)
+        .where(MasteryEvent.student_id == student_id)
+        .order_by(MasteryEvent.created_at, MasteryEvent.id)
+    ).all()
+    hint_events = db.scalars(
+        select(HintRequestEvent)
+        .where(HintRequestEvent.student_id == student_id)
+        .order_by(HintRequestEvent.created_at, HintRequestEvent.id)
+    ).all()
+
+    return build_dashboard_series_from_records(
+        mastery_profile,
+        submissions,
+        mastery_events,
+        hint_events,
+    )
+
+
+def build_dashboard_series_from_records(
+    mastery_profile: StudentMasteryProfile,
+    submissions: list[Submission],
+    mastery_events: list[MasteryEvent],
+    hint_events: list[HintRequestEvent],
+) -> list[DashboardSeriesPoint]:
+    """Build up to seven daily learning snapshots from persisted student activity."""
+    activity_by_day: dict[date, dict[str, int]] = defaultdict(
+        lambda: {"attempts": 0, "hints": 0}
+    )
+    mastery_events_by_day: dict[date, list[MasteryEvent]] = defaultdict(list)
+
+    for submission in submissions:
+        activity_by_day[utc_day(submission.created_at)]["attempts"] += 1
+
+    for hint_event in hint_events:
+        activity_by_day[utc_day(hint_event.created_at)]["hints"] += 1
+
+    for event in mastery_events:
+        event_day = utc_day(event.created_at)
+        activity_by_day[event_day]
+        mastery_events_by_day[event_day].append(event)
+
+    if not activity_by_day:
+        return [
+            DashboardSeriesPoint(
+                label="Current",
+                masteryAverage=calculate_mastery_average(mastery_profile),
+                attempts=0,
+                hints=0,
+            )
+        ]
+
+    mastery_by_kc = {item.code: 0.0 for item in mastery_profile.items}
+    points_by_day: dict[date, float] = {}
+    for activity_day in sorted(activity_by_day):
+        for event in mastery_events_by_day[activity_day]:
+            mastery_by_kc[event.kc_id] = event.new_mastery
+        average = sum(mastery_by_kc.values()) / len(mastery_by_kc) if mastery_by_kc else 0.0
+        points_by_day[activity_day] = round(average, 2)
+
+    recent_days = sorted(activity_by_day)[-7:]
+    return [
+        DashboardSeriesPoint(
+            label=activity_day.strftime("%b %d"),
+            masteryAverage=points_by_day[activity_day],
+            attempts=activity_by_day[activity_day]["attempts"],
+            hints=activity_by_day[activity_day]["hints"],
+        )
+        for activity_day in recent_days
+    ]
+
+
+def utc_day(value: datetime) -> date:
+    """Handle utc day."""
+    if value.tzinfo is None:
+        value = value.replace(tzinfo=timezone.utc)
+    return value.astimezone(timezone.utc).date()

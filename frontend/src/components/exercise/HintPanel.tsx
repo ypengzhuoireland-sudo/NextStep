@@ -12,6 +12,7 @@ interface HintPanelProps {
   onRequestHint: (level: 1 | 2 | 3) => void;
 }
 
+/** Render the hint panel interface. */
 export function HintPanel({ messages, isHinting, hintingLevel, onRequestHint }: HintPanelProps) {
   const lastHintLevel = messages[messages.length - 1]?.level as 1 | 2 | 3 | undefined;
   const activeLevel = hintingLevel ?? lastHintLevel ?? 1;

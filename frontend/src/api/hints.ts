@@ -10,6 +10,7 @@ interface HintRequest {
   requestedHintLevel: 1 | 2 | 3;
 }
 
+/** Request hint. */
 export async function requestHint(levelOrRequest: 1 | 2 | 3 | HintRequest): Promise<HintMessage> {
   const request = typeof levelOrRequest === "number" ? { requestedHintLevel: levelOrRequest } : levelOrRequest;
 
@@ -30,6 +31,7 @@ export async function requestHint(levelOrRequest: 1 | 2 | 3 | HintRequest): Prom
   });
 }
 
+/** Build mock hint. */
 function buildMockHint(level: 1 | 2 | 3): HintMessage {
   const hintByLevel: Record<1 | 2 | 3, Pick<HintMessage, "title" | "text">> = {
     1: {

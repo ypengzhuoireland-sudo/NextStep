@@ -4,6 +4,7 @@ import type { StudentMasteryProfile } from "@/types/tutor";
 
 type MasteryLoadState = "idle" | "loading" | "ready" | "error";
 
+/** Manage mastery state. */
 export function useMastery(studentId: string | null) {
   const [profile, setProfile] = useState<StudentMasteryProfile | null>(null);
   const [loadState, setLoadState] = useState<MasteryLoadState>("idle");

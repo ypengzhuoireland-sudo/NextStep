@@ -15,6 +15,7 @@ SessionLocal = sessionmaker(
 
 
 def get_db() -> Generator[Session]:
+    """Return db."""
     db = SessionLocal()
 
     try:

@@ -21,6 +21,7 @@ def build_judge0_payload(
     request: ExecutionRunRequest,
     python_language_id: int | None = None,
 ) -> dict[str, Any]:
+    """Build judge0 payload."""
     if request.language != "python":
         raise ExecutionServiceError("Only python is supported in the MVP runner")
 
@@ -33,6 +34,7 @@ def build_judge0_payload(
 
 # Execute submitted code through Judge0 and return a normalized backend response.
 def run_code_with_judge0(request: ExecutionRunRequest) -> ExecutionRunResponse:
+    """Run code with judge0."""
     payload = build_judge0_payload(request)
     response_data = submit_to_judge0(payload)
 
@@ -41,6 +43,7 @@ def run_code_with_judge0(request: ExecutionRunRequest) -> ExecutionRunResponse:
 
 # Send one synchronous execution request to Judge0.
 def submit_to_judge0(payload: dict[str, Any]) -> dict[str, Any]:
+    """Submit to judge0."""
     if not settings.judge0_api_key:
         raise ExecutionServiceError("JUDGE0_API_KEY is not configured")
 
@@ -75,6 +78,7 @@ def normalize_judge0_response(
     response: dict[str, Any],
     request: ExecutionRunRequest,
 ) -> ExecutionRunResponse:
+    """Normalize judge0 response."""
     status = response.get("status") or {}
     status_id = status.get("id")
     stdout = response.get("stdout") or ""
@@ -138,6 +142,7 @@ def build_execution_response_from_test_cases(
     response: dict[str, Any],
     test_results: list[dict[str, Any]],
 ) -> ExecutionRunResponse:
+    """Build execution response from test cases."""
     status = response.get("status") or {}
     status_id = status.get("id")
     stdout = response.get("stdout") or ""
@@ -196,6 +201,7 @@ def build_summary(
     total_count: int,
     status_description: str,
 ) -> str:
+    """Build summary."""
     if result_status == "passed":
         return "All tests passed." if total_count else status_description
     if result_status == "failed":
@@ -204,6 +210,7 @@ def build_summary(
 
 
 def map_judge0_error_type(status_id: int | None, status_description: str) -> str:
+    """Map judge0 error type."""
     text = status_description.lower()
 
     if status_id == 5 or "time" in text:
@@ -217,6 +224,7 @@ def map_judge0_error_type(status_id: int | None, status_description: str) -> str
 
 
 def to_runtime_ms(value: Any) -> int:
+    """Convert to runtime ms."""
     try:
         return int(float(value or 0) * 1000)
     except (TypeError, ValueError):
@@ -224,6 +232,7 @@ def to_runtime_ms(value: Any) -> int:
 
 
 def to_memory_mb(value: Any) -> float:
+    """Convert to memory mb."""
     try:
         return round(float(value or 0) / 1024, 1)
     except (TypeError, ValueError):

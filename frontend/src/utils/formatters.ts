@@ -1,10 +1,12 @@
 import type { Difficulty, MasteryState } from "@/types/tutor";
 import type { CSSProperties } from "react";
 
+/** Format percent. */
 export function formatPercent(value: number) {
   return `${Math.round(value * 100)}%`;
 }
 
+/** Handle difficulty label. */
 export function difficultyLabel(difficulty: Difficulty) {
   const labels: Record<Difficulty, string> = {
     easy: "Easy",
@@ -15,6 +17,7 @@ export function difficultyLabel(difficulty: Difficulty) {
   return labels[difficulty];
 }
 
+/** Handle difficulty tone. */
 export function difficultyTone(difficulty: Difficulty) {
   const tones: Record<Difficulty, string> = {
     easy: "border-emerald-400/25 bg-emerald-400/10 text-emerald-200",
@@ -25,6 +28,7 @@ export function difficultyTone(difficulty: Difficulty) {
   return tones[difficulty];
 }
 
+/** Handle mastery state label. */
 export function masteryStateLabel(state: MasteryState) {
   const labels: Record<MasteryState, string> = {
     needs_practice: "Needs practice",
@@ -35,6 +39,7 @@ export function masteryStateLabel(state: MasteryState) {
   return labels[state];
 }
 
+/** Handle mastery color. */
 export function masteryColor(value: number) {
   if (value >= 0.75) {
     return "text-emerald-200";
@@ -51,6 +56,7 @@ export function masteryColor(value: number) {
   return "text-rose-100";
 }
 
+/** Handle heatmap color. */
 export function heatmapColor(value: number) {
   if (value >= 0.8) {
     return "bg-emerald-300/80 shadow-[0_0_18px_rgba(110,231,183,0.28)]";
@@ -67,6 +73,7 @@ export function heatmapColor(value: number) {
   return "bg-rose-300/70 shadow-[0_0_18px_rgba(253,164,175,0.18)]";
 }
 
+/** Handle heatmap style. */
 export function heatmapStyle(value: number): CSSProperties {
   const clamped = clampProbability(value);
   const hue =
@@ -83,6 +90,7 @@ export function heatmapStyle(value: number): CSSProperties {
   };
 }
 
+/** Clamp probability. */
 function clampProbability(value: number) {
   return Math.max(0, Math.min(1, value));
 }

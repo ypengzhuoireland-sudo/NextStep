@@ -6,6 +6,7 @@ interface MasteryHeatmapProps {
   items: KnowledgeComponent[];
 }
 
+/** Render the mastery heatmap interface. */
 export function MasteryHeatmap({ items }: MasteryHeatmapProps) {
   return (
     <div className="grid grid-cols-5 gap-2">

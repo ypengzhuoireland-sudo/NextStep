@@ -13,6 +13,7 @@ def get_student_mastery_profile(
     db: Session,
     student_id: str,
 ) -> StudentMasteryProfile | None:
+    """Return student mastery profile."""
     user = db.query(User).filter(User.student_id == student_id).one_or_none()
 
     if user is None:
@@ -56,6 +57,7 @@ def get_student_mastery_profile(
 
 
 def mastery_state(mastery: float) -> str:
+    """Handle mastery state."""
     if mastery >= 0.75:
         return "mastered"
     if mastery >= 0.6:

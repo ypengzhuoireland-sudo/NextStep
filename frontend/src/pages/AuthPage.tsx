@@ -14,6 +14,7 @@ interface AuthPageProps {
   onAuthed: (user: AuthUser) => void;
 }
 
+/** Render the auth page interface. */
 export function AuthPage({ onAuthed }: AuthPageProps) {
   const [mode, setMode] = useState<AuthMode>("login");
   const [email, setEmail] = useState("teacher@nextstep.test");
@@ -22,6 +23,7 @@ export function AuthPage({ onAuthed }: AuthPageProps) {
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
 
+  /** Handle submit. */
   async function submit(e: FormEvent) {
     e.preventDefault();
     setBusy(true);
@@ -150,6 +152,7 @@ export function AuthPage({ onAuthed }: AuthPageProps) {
   );
 }
 
+/** Handle tab cls. */
 function tabCls(active: boolean) {
   return cn(
     "h-8 rounded-md text-xs font-medium text-slate-400 transition-colors",

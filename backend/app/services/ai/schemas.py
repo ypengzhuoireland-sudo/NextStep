@@ -37,6 +37,7 @@ class HintRequest(BaseModel):
     @field_validator("mastery_context")
     @classmethod
     def clamp_mastery_values(cls, value: dict[str, float]) -> dict[str, float]:
+        """Clamp mastery values."""
         return {key: max(0.0, min(1.0, float(score))) for key, score in value.items()}
 
 
@@ -72,6 +73,7 @@ class RecommendationExplanationRequest(BaseModel):
     @field_validator("mastery_profile")
     @classmethod
     def clamp_mastery_values(cls, value: dict[str, float]) -> dict[str, float]:
+        """Clamp mastery values."""
         return {key: max(0.0, min(1.0, float(score))) for key, score in value.items()}
 
 
@@ -143,6 +145,7 @@ class OpenAISettings(BaseModel):
 
     @classmethod
     def from_env(cls) -> "OpenAISettings":
+        """Handle from env."""
         return cls(
             api_key=os.getenv("OPENAI_API_KEY", ""),
             model=os.getenv("OPENAI_MODEL", "gpt-5.5"),
@@ -152,6 +155,7 @@ class OpenAISettings(BaseModel):
 
 
 def dump_jsonable(value: BaseModel | dict[str, Any] | list[Any] | None) -> Any:
+    """Handle dump jsonable."""
     if isinstance(value, BaseModel):
         return value.model_dump()
     if isinstance(value, list):

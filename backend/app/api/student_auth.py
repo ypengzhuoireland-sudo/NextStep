@@ -31,6 +31,7 @@ def login_student(
     request: StudentLoginRequest,
     db: Session = Depends(get_db),
 ) -> StudentAuthResponse:
+    """Handle login student."""
     response = authenticate_student(db, request)
 
     if response is None:
@@ -47,6 +48,7 @@ def login_teacher(
     request: StudentLoginRequest,
     db: Session = Depends(get_db),
 ) -> StudentAuthResponse:
+    """Handle login teacher."""
     response = authenticate_teacher(db, request)
 
     if response is None:
@@ -67,6 +69,7 @@ def register_student_account(
     request: StudentRegisterRequest,
     db: Session = Depends(get_db),
 ) -> StudentAuthResponse:
+    """Handle register student account."""
     response = register_student(db, request)
 
     if response is None:
@@ -83,6 +86,7 @@ def get_student_me(
     auth_credentials: HTTPAuthorizationCredentials | None = Depends(bearer_scheme),
     db: Session = Depends(get_db),
 ) -> StudentMeResponse:
+    """Return student me."""
     if auth_credentials is None:
         raise_unauthorized("Missing Authorization header")
 
@@ -99,6 +103,7 @@ def logout_current_student(
     auth_credentials: HTTPAuthorizationCredentials | None = Depends(bearer_scheme),
     db: Session = Depends(get_db),
 ) -> StudentMessageResponse:
+    """Handle logout current student."""
     if auth_credentials is None:
         raise_unauthorized("Missing Authorization header")
 
@@ -115,6 +120,7 @@ def delete_current_student(
     auth_credentials: HTTPAuthorizationCredentials | None = Depends(bearer_scheme),
     db: Session = Depends(get_db),
 ) -> StudentMessageResponse:
+    """Delete current student."""
     if auth_credentials is None:
         raise_unauthorized("Missing Authorization header")
 
@@ -127,6 +133,7 @@ def delete_current_student(
 
 
 def raise_unauthorized(detail: str) -> NoReturn:
+    """Raise unauthorized."""
     raise HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail=detail,

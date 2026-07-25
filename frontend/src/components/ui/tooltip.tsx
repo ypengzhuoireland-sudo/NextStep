@@ -5,6 +5,7 @@ const TooltipProvider = TooltipPrimitive.Provider;
 const Tooltip = TooltipPrimitive.Root;
 const TooltipTrigger = TooltipPrimitive.Trigger;
 
+/** Render the tooltip content interface. */
 function TooltipContent({
   className,
   sideOffset = 8,

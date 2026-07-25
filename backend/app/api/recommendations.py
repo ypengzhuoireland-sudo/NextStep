@@ -19,4 +19,5 @@ def get_next_recommendation(
     current_user: UserProfile = Depends(require_student_user),
     db: Session = Depends(get_db),
 ) -> NextRecommendationResponse:
+    """Return next recommendation."""
     return build_next_recommendation(db, request, current_user.student_id)

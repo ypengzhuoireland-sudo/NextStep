@@ -26,6 +26,7 @@ def create_session(
     current_user: UserProfile = Depends(require_student_user),
     db: Session = Depends(get_db),
 ) -> PracticeSessionCreateResponse:
+    """Create session."""
     return create_practice_session(db, request, current_user)
 
 
@@ -35,6 +36,7 @@ def get_current_exercise(
     current_user: UserProfile = Depends(require_student_user),
     db: Session = Depends(get_db),
 ) -> CurrentExerciseResponse:
+    """Return current exercise."""
     return build_current_exercise_response(db, session_id, current_user)
 
 
@@ -44,6 +46,7 @@ def request_hint(
     current_user: UserProfile = Depends(require_student_user),
     db: Session = Depends(get_db),
 ) -> HintMessage:
+    """Handle request hint."""
     try:
         return build_hint_message(db, request, current_user)
     except ValueError as exc:

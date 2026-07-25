@@ -9,6 +9,7 @@ from sqlalchemy.orm import Session
 from app.models.knowledge_component import KnowledgeComponent
 from app.models.class_enrollment import ClassEnrollment
 from app.models.diagnostic_attempt import DiagnosticAttempt
+from app.models.hint_request_event import HintRequestEvent
 from app.models.mastery_event import MasteryEvent
 from app.models.student_mastery import StudentMastery
 from app.models.submission import Submission
@@ -40,6 +41,7 @@ def authenticate_student(
     db: Session,
     request: StudentLoginRequest,
 ) -> StudentAuthResponse | None:
+    """Handle authenticate student."""
     user = find_active_user_by_username(db, request.email.strip().lower())
 
     if (
@@ -56,6 +58,7 @@ def authenticate_teacher(
     db: Session,
     request: StudentLoginRequest,
 ) -> StudentAuthResponse | None:
+    """Handle authenticate teacher."""
     user = find_active_user_by_username(db, request.email.strip().lower())
 
     if (
@@ -72,6 +75,7 @@ def register_student(
     db: Session,
     request: StudentRegisterRequest,
 ) -> StudentAuthResponse | None:
+    """Handle register student."""
     email = request.email.strip().lower()
     name = request.name.strip()
 
@@ -102,6 +106,7 @@ def register_student(
 
 
 def get_student_from_token(db: Session, token: str) -> StudentUser | None:
+    """Return student from token."""
     if is_access_token_revoked(token):
         return None
 
@@ -123,6 +128,7 @@ def get_student_from_token(db: Session, token: str) -> StudentUser | None:
 
 
 def logout_student(db: Session, token: str) -> bool:
+    """Handle logout student."""
     if is_access_token_revoked(token):
         return False
 
@@ -134,6 +140,7 @@ def logout_student(db: Session, token: str) -> bool:
 
 
 def delete_student_account(db: Session, token: str) -> bool:
+    """Delete student account."""
     if is_access_token_revoked(token):
         return False
 
@@ -143,6 +150,7 @@ def delete_student_account(db: Session, token: str) -> bool:
         return False
 
     db.execute(delete(MasteryEvent).where(MasteryEvent.student_id == user.student_id))
+    db.execute(delete(HintRequestEvent).where(HintRequestEvent.student_id == user.student_id))
     db.execute(delete(DiagnosticAttempt).where(DiagnosticAttempt.student_id == user.student_id))
     db.execute(delete(Submission).where(Submission.student_id == user.student_id))
     db.execute(delete(StudentMastery).where(StudentMastery.student_id == user.student_id))
@@ -154,6 +162,7 @@ def delete_student_account(db: Session, token: str) -> bool:
 
 
 def get_user_model_from_token(db: Session, token: str) -> User | None:
+    """Return user model from token."""
     if token.startswith("student_"):
         return find_active_user_by_student_id(db, token.removeprefix("student_"))
 
@@ -168,6 +177,7 @@ def get_user_model_from_token(db: Session, token: str) -> User | None:
 
 
 def to_student_auth_response(user: User) -> StudentAuthResponse:
+    """Convert to student auth response."""
     return StudentAuthResponse(
         token=create_token(user, token_type="access"),
         user=to_student_user(user),
@@ -175,6 +185,7 @@ def to_student_auth_response(user: User) -> StudentAuthResponse:
 
 
 def to_student_user(user: User) -> StudentUser:
+    """Convert to student user."""
     return StudentUser(
         id=user.student_id,
         name=user.name,
@@ -186,6 +197,7 @@ def to_student_user(user: User) -> StudentUser:
 
 
 def avatar_initials(name: str) -> str:
+    """Handle avatar initials."""
     parts = [part for part in name.strip().split() if part]
 
     if not parts:
@@ -198,6 +210,7 @@ def avatar_initials(name: str) -> str:
 
 
 def generate_frontend_student_id(db: Session) -> str:
+    """Handle generate frontend student id."""
     while True:
         student_id = f"stu_local_{int(time.time() * 1000)}"
 
@@ -206,6 +219,7 @@ def generate_frontend_student_id(db: Session) -> str:
 
 
 def ensure_student_mastery_rows(db: Session, student_id: str) -> None:
+    """Ensure student mastery rows."""
     kc_ids = db.scalars(select(KnowledgeComponent.id).order_by(KnowledgeComponent.id)).all()
 
     for kc_id in kc_ids:

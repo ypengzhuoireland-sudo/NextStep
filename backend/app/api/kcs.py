@@ -11,6 +11,7 @@ router = APIRouter()
 
 @router.get("/kcs", response_model=KnowledgeComponentListResponse)
 def get_kcs(db: Session = Depends(get_db)) -> KnowledgeComponentListResponse:
+    """Return kcs."""
     return list_knowledge_components(db)
 
 
@@ -19,6 +20,7 @@ def get_kc(
     code: str,
     db: Session = Depends(get_db),
 ) -> KnowledgeComponentDetail:
+    """Return kc."""
     kc = get_knowledge_component_by_code(db, code)
 
     if kc is None:

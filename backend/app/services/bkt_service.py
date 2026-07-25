@@ -15,6 +15,7 @@ class BKTParameters:
     slip: float = 0.1
 
     def __post_init__(self) -> None:
+        """Validate the initialized instance."""
         for name, value in (
             ("prior", self.prior),
             ("learn", self.learn),
@@ -34,6 +35,7 @@ def update_knowledge_state(
     correct: bool,
     params: BKTParameters = DEFAULT_BKT_PARAMETERS,
 ) -> float:
+    """Update knowledge state."""
     probability_known = clamp_probability(current_mastery)
 
     if correct:
@@ -55,6 +57,7 @@ def update_knowledge_state(
 
 
 def get_bkt_parameters_for_kc(db: Session, kc_id: str) -> BKTParameters:
+    """Return bkt parameters for kc."""
     row = db.get(KnowledgeComponentBKTParameters, kc_id)
 
     if row is None:
@@ -69,4 +72,5 @@ def get_bkt_parameters_for_kc(db: Session, kc_id: str) -> BKTParameters:
 
 
 def clamp_probability(value: float) -> float:
+    """Clamp probability."""
     return max(0.0, min(1.0, float(value)))

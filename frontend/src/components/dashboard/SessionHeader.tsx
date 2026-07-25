@@ -12,6 +12,7 @@ interface SessionHeaderProps {
   learnerLabel?: string;
 }
 
+/** Render the session header interface. */
 export function SessionHeader({
   session,
   onOpenDashboard,

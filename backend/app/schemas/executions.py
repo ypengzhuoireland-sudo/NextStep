@@ -46,10 +46,12 @@ class ExecutionRunResponse(BaseModel):
 
     @property
     def passed(self) -> bool:
+        """Handle passed."""
         return self.status == "passed"
 
     @property
     def status_description(self) -> str:
+        """Handle status description."""
         if self.status == "passed":
             return "Accepted"
         if self.status == "failed":
@@ -58,6 +60,7 @@ class ExecutionRunResponse(BaseModel):
 
     @property
     def status_id(self) -> int | None:
+        """Handle status id."""
         if self.status == "passed":
             return 3
         if self.errorType == "timeout":

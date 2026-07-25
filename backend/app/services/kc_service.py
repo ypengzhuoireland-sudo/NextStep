@@ -11,6 +11,7 @@ from app.schemas.kcs import (
 
 
 def list_knowledge_components(db: Session) -> KnowledgeComponentListResponse:
+    """List knowledge components."""
     rows = db.execute(
         select(
             KnowledgeComponent.id,
@@ -50,6 +51,7 @@ def get_knowledge_component_by_code(
     db: Session,
     code: str,
 ) -> KnowledgeComponentDetail | None:
+    """Return knowledge component by code."""
     kc = db.get(KnowledgeComponent, code)
 
     if kc is None:

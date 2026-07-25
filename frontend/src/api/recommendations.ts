@@ -10,6 +10,7 @@ interface NextRecommendationRequest {
   masteryProfile?: KnowledgeComponent[];
 }
 
+/** Return next recommendation. */
 export async function getNextRecommendation(
   request: NextRecommendationRequest
 ): Promise<RecommendationResponse> {

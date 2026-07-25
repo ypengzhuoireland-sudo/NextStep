@@ -13,6 +13,7 @@ interface LocalAccount extends AuthUser {
 
 const USERS_KEY = "nextstep_users";
 
+/** Log in user. */
 export async function loginUser(payload: AuthPayload) {
   await nap(320);
   const email = payload.email.trim().toLowerCase();
@@ -25,6 +26,7 @@ export async function loginUser(payload: AuthPayload) {
   return saveSession(account);
 }
 
+/** Register user. */
 export async function registerUser(payload: AuthPayload) {
   await nap(420);
   const email = payload.email.trim().toLowerCase();
@@ -46,6 +48,7 @@ export async function registerUser(payload: AuthPayload) {
   return saveSession(account);
 }
 
+/** Return me. */
 export async function getMe(): Promise<AuthUser | null> {
   await nap(120);
   const token = localStorage.getItem(AUTH_TOKEN_KEY);
@@ -59,10 +62,12 @@ export async function getMe(): Promise<AuthUser | null> {
   return user ? publicUser(user) : null;
 }
 
+/** Log out user. */
 export function logoutUser() {
   localStorage.removeItem(AUTH_TOKEN_KEY);
 }
 
+/** Save session. */
 function saveSession(account: LocalAccount): AuthResult {
   localStorage.setItem(AUTH_TOKEN_KEY, `local_${account.id}`);
   return {
@@ -71,6 +76,7 @@ function saveSession(account: LocalAccount): AuthResult {
   };
 }
 
+/** Read users. */
 function readUsers(): LocalAccount[] {
   const saved = localStorage.getItem(USERS_KEY);
   if (!saved) {
@@ -86,6 +92,7 @@ function readUsers(): LocalAccount[] {
   }
 }
 
+/** Build public user. */
 function publicUser(user: LocalAccount): AuthUser {
   return {
     id: user.id,
@@ -103,4 +110,5 @@ const demoUser: LocalAccount = {
   password: "demo1234"
 };
 
+/** Handle nap. */
 const nap = (ms: number) => new Promise((resolve) => window.setTimeout(resolve, ms));

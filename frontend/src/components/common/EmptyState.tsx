@@ -8,6 +8,7 @@ interface EmptyStateProps {
   className?: string;
 }
 
+/** Render the empty state interface. */
 export function EmptyState({ icon: Icon, title, description, className }: EmptyStateProps) {
   return (
     <div

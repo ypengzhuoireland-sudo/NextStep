@@ -17,24 +17,30 @@ import type {
 
 export const USE_MOCK_API = import.meta.env.VITE_USE_MOCK !== "false";
 
+/** Handle wait. */
 export const wait = (ms = 650) => new Promise((resolve) => window.setTimeout(resolve, ms));
 
+/** Handle clone mock. */
 export function cloneMock<T>(value: T): T {
   return structuredClone(value);
 }
 
+/** Return mock session. */
 export function getMockSession(): PracticeSession {
   return cloneMock(mockSession);
 }
 
+/** Return mock exercises. */
 export function getMockExercises(): Exercise[] {
   return cloneMock(mockExerciseCatalog);
 }
 
+/** Return mock dashboard. */
 export function getMockDashboard(): ClassDashboardSummary {
   return cloneMock(mockClassDashboard);
 }
 
+/** Return mock submission result. */
 export function getMockSubmissionResult(code: string, mode: "run" | "submit"): SubmissionResult {
   const hasAppend = code.includes(".append(");
   const hasThreshold = code.includes(">= 60") || code.includes(">=60");
@@ -43,6 +49,7 @@ export function getMockSubmissionResult(code: string, mode: "run" | "submit"): S
   return cloneMock(passed ? mockPassedSubmission : mockFailedSubmission);
 }
 
+/** Return mock recommendation. */
 export function getMockRecommendation(params: {
   currentExerciseId?: string;
   experimentGroup?: ExperimentGroup;
@@ -98,6 +105,7 @@ export function getMockRecommendation(params: {
   });
 }
 
+/** Build recommendation. */
 function buildRecommendation(
   catalog: Exercise[],
   currentExerciseId: string | undefined,
@@ -107,6 +115,7 @@ function buildRecommendation(
   return withRecommendation(exercise, recommendation);
 }
 
+/** Add recommendation. */
 function withRecommendation(
   exercise: Exercise,
   recommendation: Omit<RecommendationResponse, "exercise">

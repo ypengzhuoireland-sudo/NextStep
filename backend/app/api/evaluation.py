@@ -11,6 +11,7 @@ router = APIRouter()
 def export_evaluation(
     format: str = Query(default="json"),
 ) -> EvaluationExportResponse:
+    """Handle export evaluation."""
     return EvaluationExportResponse(
         format=format,
         generated_at=datetime.now(timezone.utc).isoformat(),

@@ -29,6 +29,7 @@ class LLMGenerationError(Exception):
 
 class OpenAITransport(Protocol):
     def create_response(self, payload: dict[str, Any]) -> dict[str, Any]:
+        """Create response."""
         ...
 
 
@@ -93,9 +94,11 @@ LEARNING_ADVICE_JSON_SCHEMA: dict[str, Any] = {
 
 class OpenAIResponsesTransport:
     def __init__(self, settings: OpenAISettings) -> None:
+        """Initialize the instance."""
         self.settings = settings
 
     def create_response(self, payload: dict[str, Any]) -> dict[str, Any]:
+        """Create response."""
         body = json.dumps(payload).encode("utf-8")
         request = urllib.request.Request(
             url=f"{self.settings.base_url.rstrip('/')}/responses",
@@ -125,10 +128,12 @@ class OpenAIHintService:
         settings: OpenAISettings | None = None,
         transport: OpenAITransport | None = None,
     ) -> None:
+        """Initialize the instance."""
         self.settings = settings or OpenAISettings.from_env()
         self.transport = transport or OpenAIResponsesTransport(self.settings)
 
     def generate_hint(self, request: HintRequest) -> HintResponse:
+        """Handle generate hint."""
         if not self.settings.api_key:
             raise LLMGenerationError("OPENAI_API_KEY is not configured")
 
@@ -157,6 +162,7 @@ class OpenAIRecommendationExplanationService:
         settings: OpenAISettings | None = None,
         transport: OpenAITransport | None = None,
     ) -> None:
+        """Initialize the instance."""
         self.settings = settings or OpenAISettings.from_env()
         self.transport = transport or OpenAIResponsesTransport(self.settings)
 
@@ -164,6 +170,7 @@ class OpenAIRecommendationExplanationService:
         self,
         request: RecommendationExplanationRequest,
     ) -> RecommendationExplanationResponse:
+        """Handle generate explanation."""
         if not self.settings.api_key:
             raise LLMGenerationError("OPENAI_API_KEY is not configured")
 
@@ -192,10 +199,12 @@ class OpenAILearningAdviceService:
         settings: OpenAISettings | None = None,
         transport: OpenAITransport | None = None,
     ) -> None:
+        """Initialize the instance."""
         self.settings = settings or OpenAISettings.from_env()
         self.transport = transport or OpenAIResponsesTransport(self.settings)
 
     def generate_advice(self, request: LearningAdviceRequest) -> LearningAdviceResponse:
+        """Handle generate advice."""
         if not self.settings.api_key:
             raise LLMGenerationError("OPENAI_API_KEY is not configured")
 
@@ -225,6 +234,7 @@ def _send_json_schema_request(
     schema_name: str,
     schema: dict[str, Any],
 ) -> str:
+    """Handle send json schema request."""
     payload = {
         "model": model,
         "input": prompt,
@@ -242,6 +252,7 @@ def _send_json_schema_request(
 
 
 def extract_response_text(response_payload: dict[str, Any]) -> str:
+    """Handle extract response text."""
     if isinstance(response_payload.get("output_text"), str):
         return response_payload["output_text"]
 
@@ -255,6 +266,7 @@ def extract_response_text(response_payload: dict[str, Any]) -> str:
 
 
 def validate_hint_response(hint: HintResponse, request: HintRequest) -> None:
+    """Validate hint response."""
     if hint.level != request.requested_hint_level:
         raise LLMGenerationError("Model returned a hint level different from requested_hint_level")
 
@@ -270,6 +282,7 @@ def validate_explanation_response(
     explanation: RecommendationExplanationResponse,
     request: RecommendationExplanationRequest,
 ) -> None:
+    """Validate explanation response."""
     if explanation.confidence != request.confidence:
         raise LLMGenerationError(
             "Model returned confidence different from backend-provided confidence",
@@ -283,11 +296,13 @@ def validate_explanation_response(
 
 
 def validate_learning_advice(advice: LearningAdviceResponse) -> None:
+    """Validate learning advice."""
     if not advice.next_steps:
         raise LLMGenerationError("Model output must include at least one next_steps item")
 
 
 def create_fallback_hint(request: HintRequest) -> HintResponse:
+    """Create fallback hint."""
     kc_code = request.exercise.kc_tags[0] if request.exercise.kc_tags else "general_debugging"
     return HintResponse(
         level=request.requested_hint_level,
@@ -305,6 +320,7 @@ def create_fallback_hint(request: HintRequest) -> HintResponse:
 def create_fallback_explanation(
     request: RecommendationExplanationRequest,
 ) -> RecommendationExplanationResponse:
+    """Create fallback explanation."""
     focus_kc = (
         request.recommended_exercise.kc_tags[0]
         if request.recommended_exercise.kc_tags
@@ -323,6 +339,7 @@ def create_fallback_explanation(
 
 
 def create_fallback_advice(request: LearningAdviceRequest) -> LearningAdviceResponse:
+    """Create fallback advice."""
     weakest = min(request.mastery_profile, key=lambda item: item.mastery, default=None)
     if weakest is None:
         return LearningAdviceResponse(

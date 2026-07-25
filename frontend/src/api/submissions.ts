@@ -15,6 +15,7 @@ interface SubmissionApiResponse {
   masteryProfile?: unknown[];
 }
 
+/** Run code. */
 export async function runCode(codeOrRequest: string | CodeExecutionRequest): Promise<SubmissionResult> {
   const request = normalizeCodeRequest(codeOrRequest);
 
@@ -29,6 +30,7 @@ export async function runCode(codeOrRequest: string | CodeExecutionRequest): Pro
   });
 }
 
+/** Submit code. */
 export async function submitCode(codeOrRequest: string | CodeExecutionRequest): Promise<SubmissionResult> {
   const request = normalizeCodeRequest(codeOrRequest);
 
@@ -45,6 +47,7 @@ export async function submitCode(codeOrRequest: string | CodeExecutionRequest): 
   return response.result;
 }
 
+/** Normalize code request. */
 function normalizeCodeRequest(codeOrRequest: string | CodeExecutionRequest): CodeExecutionRequest {
   if (typeof codeOrRequest === "string") {
     return {
@@ -59,6 +62,7 @@ function normalizeCodeRequest(codeOrRequest: string | CodeExecutionRequest): Cod
   };
 }
 
+/** Convert to server payload. */
 function toServerPayload(request: CodeExecutionRequest) {
   return {
     session_id: request.sessionId,

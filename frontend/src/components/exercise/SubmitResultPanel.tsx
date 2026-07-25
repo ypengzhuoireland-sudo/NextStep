@@ -20,6 +20,7 @@ interface SubmitResultPanelProps {
   result: SubmissionResult | null;
 }
 
+/** Submit result panel. */
 export function SubmitResultPanel({ result }: SubmitResultPanelProps) {
   const passed = result?.status === "passed";
 

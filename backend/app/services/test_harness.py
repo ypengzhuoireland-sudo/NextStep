@@ -9,6 +9,7 @@ def build_python_test_runner_code(
     function_name: str,
     test_cases: list[dict[str, Any]],
 ) -> str:
+    """Build python test runner code."""
     test_cases_json = json.dumps(test_cases, ensure_ascii=False)
     test_cases_literal = repr(test_cases_json)
 
@@ -70,6 +71,7 @@ def build_python_test_runner_code(
 
 
 def parse_runner_stdout(stdout: str) -> list[dict[str, Any]]:
+    """Parse runner stdout."""
     try:
         payload = json.loads(stdout.strip())
     except json.JSONDecodeError:
@@ -79,6 +81,7 @@ def parse_runner_stdout(stdout: str) -> list[dict[str, Any]]:
 
 
 def calculate_score(test_results: list[dict[str, Any]]) -> float:
+    """Calculate score."""
     if not test_results:
         return 0.0
 
@@ -87,6 +90,7 @@ def calculate_score(test_results: list[dict[str, Any]]) -> float:
 
 
 def format_case_value(value: Any) -> str:
+    """Format case value."""
     if isinstance(value, str):
         return value
 

@@ -16,6 +16,7 @@ def require_student_user(
     auth_credentials: HTTPAuthorizationCredentials | None = Depends(bearer_scheme),
     db: Session = Depends(get_db),
 ) -> UserProfile:
+    """Require student user."""
     if auth_credentials is None:
         raise_unauthorized("Missing Authorization header")
 
@@ -34,6 +35,7 @@ def require_student_user(
 
 
 def raise_unauthorized(detail: str) -> NoReturn:
+    """Raise unauthorized."""
     raise HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail=detail,

@@ -79,6 +79,7 @@ Rules:
 
 
 def build_hint_prompt(request: HintRequest) -> str:
+    """Build hint prompt."""
     exercise_json = json.dumps(dump_jsonable(request.exercise), ensure_ascii=False, indent=2)
     latest_result_json = json.dumps(
         dump_jsonable(request.latest_result) if request.latest_result else None,
@@ -106,6 +107,7 @@ Mastery context:
 
 
 def build_recommendation_prompt(request: RecommendationExplanationRequest) -> str:
+    """Build recommendation prompt."""
     current_exercise_json = json.dumps(
         dump_jsonable(request.current_exercise),
         ensure_ascii=False,
@@ -138,6 +140,7 @@ Confidence:
 
 
 def build_learning_advice_prompt(request: LearningAdviceRequest) -> str:
+    """Build learning advice prompt."""
     mastery_json = json.dumps(dump_jsonable(request.mastery_profile), ensure_ascii=False, indent=2)
     submissions_json = json.dumps(
         dump_jsonable(request.recent_submissions),

@@ -8,6 +8,7 @@ interface StatPillProps {
   className?: string;
 }
 
+/** Render the stat pill interface. */
 export function StatPill({ icon: Icon, label, value, className }: StatPillProps) {
   return (
     <div

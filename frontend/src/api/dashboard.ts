@@ -122,6 +122,7 @@ interface ClassStudentDetailApiResponse {
   };
 }
 
+/** Return student dashboard summary. */
 export async function getStudentDashboardSummary(): Promise<StudentDashboardSummary> {
   if (USE_MOCK_API) {
     await wait(420);
@@ -161,6 +162,7 @@ export async function getStudentDashboardSummary(): Promise<StudentDashboardSumm
   return apiRequest<StudentDashboardApiResponse>("/dashboard/student");
 }
 
+/** Return class dashboard summary. */
 export async function getClassDashboardSummary(
   classId = "demo-python-101"
 ): Promise<ClassDashboardSummary> {
@@ -237,6 +239,7 @@ export interface StudentDirectoryQuery {
   offset?: number;
 }
 
+/** Return class student directory. */
 export async function getClassStudentDirectory(
   classId: string,
   query: StudentDirectoryQuery = {}
@@ -299,6 +302,7 @@ export async function getClassStudentDirectory(
   };
 }
 
+/** Return class student detail. */
 export async function getClassStudentDetail(
   classId: string,
   studentId: string
@@ -360,6 +364,7 @@ export async function getClassStudentDetail(
   };
 }
 
+/** Map directory item. */
 function mapDirectoryItem(item: ClassStudentDirectoryApiResponse["items"][number]) {
   return {
     studentId: item.student_id,

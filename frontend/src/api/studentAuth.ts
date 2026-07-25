@@ -13,6 +13,7 @@ interface StudentMeResponse {
   user: StudentUser;
 }
 
+/** Log in student. */
 export async function loginStudent(
   args: LoginArgs
 ): Promise<StudentAuthResult> {
@@ -31,6 +32,7 @@ export async function loginStudent(
   return result;
 }
 
+/** Log in teacher. */
 export async function loginTeacher(
   args: LoginArgs
 ): Promise<StudentAuthResult> {
@@ -49,6 +51,7 @@ export async function loginTeacher(
   return result;
 }
 
+/** Register student. */
 export async function registerStudent(
   args: LoginArgs
 ): Promise<StudentAuthResult> {
@@ -68,6 +71,7 @@ export async function registerStudent(
   return result;
 }
 
+/** Return student me. */
 export async function getStudentMe(): Promise<StudentUser | null> {
   const token = localStorage.getItem(AUTH_TOKEN_KEY);
 
@@ -92,6 +96,7 @@ export async function getStudentMe(): Promise<StudentUser | null> {
   }
 }
 
+/** Log out student. */
 export async function logoutStudent(): Promise<void> {
   try {
     await apiRequest<{ message: string }>(
@@ -105,6 +110,7 @@ export async function logoutStudent(): Promise<void> {
   }
 }
 
+/** Save session. */
 function saveSession(result: StudentAuthResult): void {
   localStorage.setItem(AUTH_TOKEN_KEY, result.token);
   localStorage.setItem(
@@ -113,6 +119,7 @@ function saveSession(result: StudentAuthResult): void {
   );
 }
 
+/** Clear session. */
 function clearSession(): void {
   localStorage.removeItem(AUTH_TOKEN_KEY);
   localStorage.removeItem(USER_KEY);

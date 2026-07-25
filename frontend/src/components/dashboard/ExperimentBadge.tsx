@@ -24,6 +24,7 @@ const groupMeta: Record<ExperimentGroup, { label: string; icon: typeof Sparkles;
   }
 };
 
+/** Render the experiment badge interface. */
 export function ExperimentBadge({ group }: ExperimentBadgeProps) {
   const meta = groupMeta[group];
   const Icon = meta.icon;

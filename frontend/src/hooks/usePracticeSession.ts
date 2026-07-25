@@ -24,6 +24,7 @@ import type {
 
 type LoadState = "idle" | "loading" | "ready" | "error";
 
+/** Manage practice session state. */
 export function usePracticeSession(initialExerciseId?: string) {
   const [session, setSession] = useState<PracticeSession | null>(null);
   const [code, setCode] = useState("");
@@ -52,6 +53,7 @@ export function usePracticeSession(initialExerciseId?: string) {
   useEffect(() => {
     let isMounted = true;
 
+    /** Handle load. */
     async function load() {
       setLoadState("loading");
       try {
@@ -337,6 +339,7 @@ export function usePracticeSession(initialExerciseId?: string) {
   };
 }
 
+/** Select learning path exercise. */
 function selectLearningPathExercise(
   items: LearningPathItem[],
   exercise: Exercise
@@ -362,6 +365,7 @@ function selectLearningPathExercise(
   return [selected, ...remaining].slice(0, 4);
 }
 
+/** Build next learning path. */
 function buildNextLearningPath(
   items: LearningPathItem[],
   nextExercise: PracticeSession["exercise"]

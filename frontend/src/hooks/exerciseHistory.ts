@@ -3,6 +3,7 @@ export interface PreviousExerciseResult<TExercise> {
   remaining: TExercise[];
 }
 
+/** Append exercise history. */
 export function appendExerciseHistory<TExercise extends { id: string }>(
   history: TExercise[],
   currentExercise: TExercise,
@@ -15,6 +16,7 @@ export function appendExerciseHistory<TExercise extends { id: string }>(
   return [...history, currentExercise];
 }
 
+/** Take previous exercise. */
 export function takePreviousExercise<TExercise>(
   history: TExercise[]
 ): PreviousExerciseResult<TExercise> {

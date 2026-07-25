@@ -61,10 +61,12 @@ export interface DiagnosticResult {
   recommendations: DiagnosticRecommendation[];
 }
 
+/** Return diagnostic questions. */
 export async function getDiagnosticQuestions(): Promise<DiagnosticQuestionResponse> {
   return apiRequest<DiagnosticQuestionResponse>("/diagnostic/questions");
 }
 
+/** Submit diagnostic answers. */
 export async function submitDiagnosticAnswers(
   answers: Record<string, string>
 ): Promise<DiagnosticResult> {
@@ -79,6 +81,7 @@ export async function submitDiagnosticAnswers(
   });
 }
 
+/** Skip diagnostic. */
 export async function skipDiagnostic(): Promise<DiagnosticResult> {
   return apiRequest<DiagnosticResult>("/diagnostic/skip", {
     method: "POST"

@@ -24,6 +24,7 @@ from app.services.mastery_service import get_student_mastery_profile
 
 
 def build_student_learning_advice(db: Session, student_id: str) -> LearningAdviceResponse:
+    """Build student learning advice."""
     return build_learning_advice_from_ai_request(
         build_ai_learning_advice_request(db, student_id),
     )
@@ -32,6 +33,7 @@ def build_student_learning_advice(db: Session, student_id: str) -> LearningAdvic
 def build_learning_advice_from_ai_request(
     request: AILearningAdviceRequest,
 ) -> LearningAdviceResponse:
+    """Build learning advice from ai request."""
     try:
         advice = OpenAILearningAdviceService().generate_advice(request)
     except LLMGenerationError:
@@ -44,6 +46,7 @@ def build_ai_learning_advice_request(
     db: Session,
     student_id: str,
 ) -> AILearningAdviceRequest:
+    """Build ai learning advice request."""
     mastery_items = build_mastery_profile_items(db, student_id)
     overall_mastery = calculate_overall_mastery(mastery_items)
 
@@ -59,6 +62,7 @@ def build_ai_learning_advice_request(
 
 
 def build_mastery_profile_items(db: Session, student_id: str) -> list[MasteryProfileItem]:
+    """Build mastery profile items."""
     profile = get_student_mastery_profile(db, student_id)
     if profile is None:
         return []
@@ -75,6 +79,7 @@ def build_mastery_profile_items(db: Session, student_id: str) -> list[MasteryPro
 
 
 def build_recent_submission_items(db: Session, student_id: str) -> list[AIRecentSubmission]:
+    """Build recent submission items."""
     rows = db.execute(
         select(Submission, Exercise.title, Exercise.kc_id)
         .join(Exercise, Exercise.id == Submission.exercise_id)
@@ -96,6 +101,7 @@ def build_recent_submission_items(db: Session, student_id: str) -> list[AIRecent
 
 
 def calculate_overall_mastery(items: list[MasteryProfileItem]) -> float:
+    """Calculate overall mastery."""
     if not items:
         return 0.0
 
@@ -105,6 +111,7 @@ def calculate_overall_mastery(items: list[MasteryProfileItem]) -> float:
 def map_learning_advice_response(
     advice: AILearningAdviceResponse,
 ) -> LearningAdviceResponse:
+    """Map learning advice response."""
     return LearningAdviceResponse(
         summary=advice.summary,
         strengths=advice.strengths,

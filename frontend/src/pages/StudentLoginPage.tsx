@@ -14,6 +14,7 @@ interface StudentLoginPageProps {
   onLogin: (user: StudentUser) => void;
 }
 
+/** Render the student login page interface. */
 export function StudentLoginPage({ onLogin }: StudentLoginPageProps) {
   const [mode, setMode] = useState<Mode>("login");
   const [name, setName] = useState("Python Beginner");
@@ -22,6 +23,7 @@ export function StudentLoginPage({ onLogin }: StudentLoginPageProps) {
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
 
+  /** Handle submit. */
   async function submit(e: FormEvent) {
     e.preventDefault();
     setBusy(true);
@@ -42,6 +44,7 @@ export function StudentLoginPage({ onLogin }: StudentLoginPageProps) {
     }
   }
 
+  /** Switch mode. */
   function switchMode(nextMode: Mode) {
     setMode(nextMode);
     setErr("");
@@ -171,6 +174,7 @@ export function StudentLoginPage({ onLogin }: StudentLoginPageProps) {
   );
 }
 
+/** Handle tab class. */
 function tabClass(active: boolean) {
   return cn(
     "h-9 rounded-md text-xs font-medium text-slate-400 transition-colors",

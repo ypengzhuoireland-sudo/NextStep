@@ -41,6 +41,7 @@ class DiagnosticAlreadyCompletedError(ValueError):
 
 @lru_cache(maxsize=1)
 def load_question_bank() -> tuple[dict[str, Any], ...]:
+    """Load question bank."""
     with open(QUESTION_BANK_PATH, "r", encoding="utf-8") as file:
         questions = json.load(file)
 
@@ -62,6 +63,7 @@ def load_question_bank() -> tuple[dict[str, Any], ...]:
 
 
 def get_diagnostic_questions() -> DiagnosticQuestionResponse:
+    """Return diagnostic questions."""
     questions = [
         DiagnosticQuestion(
             id=item["id"],
@@ -85,6 +87,7 @@ def submit_diagnostic(
     user: User,
     answers: list[DiagnosticAnswer],
 ) -> DiagnosticResultResponse:
+    """Submit diagnostic."""
     if user.diagnostic_completed:
         raise DiagnosticAlreadyCompletedError("Diagnostic test has already been completed")
 
@@ -190,6 +193,7 @@ def submit_diagnostic(
 
 
 def diagnostic_level(mastery: float) -> str:
+    """Handle diagnostic level."""
     if mastery >= 0.60:
         return "strength"
     if mastery <= 0.15:
@@ -201,6 +205,7 @@ def build_recommendations(
     db: Session,
     results: list[DiagnosticKcResult],
 ) -> list[DiagnosticExerciseRecommendation]:
+    """Build recommendations."""
     difficulty_order = case(
         (Exercise.difficulty == "easy", 0),
         (Exercise.difficulty == "medium", 1),

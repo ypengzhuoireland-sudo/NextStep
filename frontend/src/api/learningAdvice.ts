@@ -10,6 +10,7 @@ interface LearningAdviceApiResponse {
   warning: string;
 }
 
+/** Return learning advice. */
 export async function getLearningAdvice(): Promise<LearningAdvice> {
   if (USE_MOCK_API) {
     await wait(360);
@@ -20,6 +21,7 @@ export async function getLearningAdvice(): Promise<LearningAdvice> {
   return mapLearningAdvice(response);
 }
 
+/** Map learning advice. */
 function mapLearningAdvice(response: LearningAdviceApiResponse): LearningAdvice {
   return {
     summary: response.summary,
@@ -30,6 +32,7 @@ function mapLearningAdvice(response: LearningAdviceApiResponse): LearningAdvice 
   };
 }
 
+/** Build mock learning advice. */
 function buildMockLearningAdvice(): LearningAdvice {
   const session = getMockSession();
   const ranked = [...session.masteryProfile].sort((a, b) => a.mastery - b.mastery);

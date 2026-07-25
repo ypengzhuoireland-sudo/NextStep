@@ -26,6 +26,7 @@ def run_execution(
     _current_user: UserProfile = Depends(require_student_user),
     db: Session = Depends(get_db),
 ) -> ExecutionRunResponse:
+    """Run execution."""
     try:
         if request.exercise_id is not None:
             exercise = db.get(Exercise, request.exercise_id)

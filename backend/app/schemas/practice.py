@@ -28,6 +28,8 @@ class LearningPathItem(BaseModel):
 class DashboardSeriesPoint(BaseModel):
     label: str
     masteryAverage: float
+    attempts: int
+    hints: int
 
 
 class HintMessage(BaseModel):

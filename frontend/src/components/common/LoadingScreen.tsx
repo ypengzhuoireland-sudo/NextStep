@@ -2,6 +2,7 @@ import { motion } from "framer-motion";
 import { BrainCircuit } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 
+/** Render the loading screen interface. */
 export function LoadingScreen() {
   return (
     <div className="soft-grid min-h-screen p-4 sm:p-6">

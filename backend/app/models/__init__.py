@@ -2,6 +2,7 @@ from app.models.bkt_parameters import KnowledgeComponentBKTParameters
 from app.models.class_enrollment import ClassEnrollment
 from app.models.diagnostic_attempt import DiagnosticAttempt
 from app.models.exercise import Exercise, ExerciseKnowledgeComponent
+from app.models.hint_request_event import HintRequestEvent
 from app.models.knowledge_component import KnowledgeComponent
 from app.models.mastery_event import MasteryEvent
 from app.models.student_mastery import StudentMastery
@@ -12,6 +13,7 @@ __all__ = [
     "Exercise",
     "ClassEnrollment",
     "ExerciseKnowledgeComponent",
+    "HintRequestEvent",
     "DiagnosticAttempt",
     "KnowledgeComponentBKTParameters",
     "KnowledgeComponent",

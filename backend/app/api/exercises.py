@@ -17,6 +17,7 @@ def get_exercises(
     status: str | None = Query(default=None),
     db: Session = Depends(get_db),
 ) -> ExerciseListResponse:
+    """Return exercises."""
     return list_exercises(db, kc=kc, difficulty=difficulty, status=status)
 
 
@@ -26,6 +27,7 @@ def get_exercise(
     exercise_id: str,
     db: Session = Depends(get_db),
 ) -> ExerciseDetail:
+    """Return exercise."""
     exercise = get_exercise_by_id(db, exercise_id)
 
     if exercise is None:

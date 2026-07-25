@@ -27,6 +27,7 @@ def list_diagnostic_questions(
     auth_credentials: HTTPAuthorizationCredentials | None = Depends(bearer_scheme),
     db: Session = Depends(get_db),
 ) -> DiagnosticQuestionResponse:
+    """List diagnostic questions."""
     get_current_user(auth_credentials, db)
     return get_diagnostic_questions()
 
@@ -37,6 +38,7 @@ def submit_diagnostic_answers(
     auth_credentials: HTTPAuthorizationCredentials | None = Depends(bearer_scheme),
     db: Session = Depends(get_db),
 ) -> DiagnosticResultResponse:
+    """Submit diagnostic answers."""
     user = get_current_user(auth_credentials, db)
     try:
         return submit_diagnostic(db, user, request.answers)
@@ -54,6 +56,7 @@ def skip_diagnostic(
     auth_credentials: HTTPAuthorizationCredentials | None = Depends(bearer_scheme),
     db: Session = Depends(get_db),
 ) -> DiagnosticResultResponse:
+    """Handle skip diagnostic."""
     user = get_current_user(auth_credentials, db)
     try:
         return submit_diagnostic(db, user, [])
@@ -65,6 +68,7 @@ def get_current_user(
     auth_credentials: HTTPAuthorizationCredentials | None,
     db: Session,
 ):
+    """Return current user."""
     if auth_credentials is None:
         raise_unauthorized("Missing Authorization header")
     user = get_user_model_from_token(db, auth_credentials.credentials)
@@ -74,6 +78,7 @@ def get_current_user(
 
 
 def raise_unauthorized(detail: str) -> NoReturn:
+    """Raise unauthorized."""
     raise HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail=detail,
