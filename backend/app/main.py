@@ -1,3 +1,5 @@
+from collections.abc import AsyncIterator
+from contextlib import asynccontextmanager
 import os
 from pathlib import Path
 
@@ -20,6 +22,7 @@ from app.api.recommendations import router as recommendations_router
 from app.api.student_auth import router as student_auth_router
 from app.api.student_auth import teacher_router
 from app.api.submissions import router as submissions_router
+from app.db.init_db import init_db
 
 DEFAULT_ALLOWED_ORIGINS = [
     "http://localhost:3000",
@@ -28,6 +31,21 @@ DEFAULT_ALLOWED_ORIGINS = [
     "http://127.0.0.1:5173",
 ]
 FRONTEND_DIST = Path(__file__).resolve().parents[1] / "static"
+
+
+def initialize_database_on_startup() -> None:
+    """Initialize or migrate the database when the app starts."""
+    if os.getenv("SKIP_DB_INIT_ON_STARTUP", "").lower() in {"1", "true", "yes"}:
+        return
+
+    init_db()
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI) -> AsyncIterator[None]:
+    """Run startup and shutdown hooks."""
+    initialize_database_on_startup()
+    yield
 
 
 def get_allowed_origins() -> list[str]:
@@ -40,7 +58,7 @@ def get_allowed_origins() -> list[str]:
     return list(dict.fromkeys([*DEFAULT_ALLOWED_ORIGINS, *configured_origins]))
 
 
-app = FastAPI()
+app = FastAPI(lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
