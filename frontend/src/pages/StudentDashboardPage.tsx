@@ -26,7 +26,7 @@ interface StudentDashboardPageProps {
   onLogout?: () => void;
 }
 
-/** Render the student dashboard page interface. */
+// show Average mastery level, Weak knowledge areas, Recommended exercises
 export function StudentDashboardPage({ onOpenPractice, onLogout }: StudentDashboardPageProps) {
   const [summary, setSummary] = useState<StudentDashboardSummary | null>(null);
   const [loadState, setLoadState] = useState<DashboardLoadState>("idle");
@@ -57,7 +57,7 @@ export function StudentDashboardPage({ onOpenPractice, onLogout }: StudentDashbo
       isMounted = false;
     };
   }, []);
-
+// if mastery is below threshold, consider it weak
   const weakKcs = useMemo(
     () => [...(summary?.masteryProfile ?? [])].sort((a, b) => a.mastery - b.mastery).slice(0, 5),
     [summary?.masteryProfile]

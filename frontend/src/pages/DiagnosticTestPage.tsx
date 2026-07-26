@@ -33,7 +33,7 @@ interface DiagnosticTestPageProps {
 
 type PageState = "loading" | "ready" | "submitting" | "skipping" | "result" | "error";
 
-/** Render the diagnostic test page interface. */
+// In this part, I desgined Diagnostic Assessment Page Component to Loads diagnostic questions, records the user's answers, handles skipped questions
 export function DiagnosticTestPage({ onComplete }: DiagnosticTestPageProps) {
   const [assessment, setAssessment] = useState<DiagnosticQuestionResponse | null>(null);
   const [answers, setAnswers] = useState<Record<string, string>>({});
@@ -107,7 +107,8 @@ export function DiagnosticTestPage({ onComplete }: DiagnosticTestPageProps) {
     }
   }
 
-  /** Select answer. */
+  //Selects an answer for a specific question.
+  // If the question was previously marked as skipped, it will be removed
   function selectAnswer(questionId: string, optionId: string) {
     setAnswers((current) => ({ ...current, [questionId]: optionId }));
     setSkippedQuestions((current) => {
@@ -118,7 +119,7 @@ export function DiagnosticTestPage({ onComplete }: DiagnosticTestPageProps) {
     });
   }
 
-  /** Move to next question. */
+  // Move to next question.
   function goToNextQuestion() {
     if (!question) return;
     if (!answers[question.id]) {
@@ -323,7 +324,7 @@ interface ResultSectionProps {
   onStart: (exerciseId?: string) => void;
 }
 
-/** Render the diagnostic results interface. */
+//show results
 function DiagnosticResults({ result, strengths, developing, weaknesses, onStart }: ResultSectionProps) {
   const skippedCount = result.questionResults.filter((item) => item.skipped).length;
 

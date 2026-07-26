@@ -8,7 +8,8 @@ import { StudentLoginPage } from "@/pages/StudentLoginPage";
 import { TeacherDashboardPage } from "@/pages/TeacherDashboardPage";
 import type { StudentUser } from "@/types/auth";
 
-/** Render the app interface. */
+/*In this part, I will design this program which will determines whether to display the login page,
+loading page and so on */
 export default function App() {
   const [student, setStudent] = useState<StudentUser | null>(null);
   const [checking, setChecking] = useState(true);
@@ -18,7 +19,7 @@ export default function App() {
   useEffect(() => {
     let mounted = true;
 
-    /** Load student. */
+    // Load student
     async function loadStudent() {
       const user = await getStudentMe();
       if (mounted) {
@@ -37,7 +38,7 @@ export default function App() {
     };
   }, []);
 
-  /** Handle logout. */
+  // Handle logout
   async function handleLogout() {
     await logoutStudent();
     setStudent(null);
