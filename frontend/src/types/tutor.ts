@@ -173,6 +173,7 @@ export interface StudentDashboardSummary {
   } | null;
   masteryProfile: KnowledgeComponent[];
   learningPath: KnowledgeComponent[];
+  dashboardSeries: DashboardPoint[];
 }
 
 export interface ClassHeatmapCell {

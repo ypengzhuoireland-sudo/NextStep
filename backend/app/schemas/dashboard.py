@@ -24,6 +24,13 @@ class Exercise(BaseModel):
     status: str
 
 
+class DashboardSeriesPoint(BaseModel):
+    label: str
+    masteryAverage: float
+    attempts: int
+    hints: int
+
+
 # Represent the full dashboard response returned to the logged-in user.
 class DashboardResponse(BaseModel):
     studentId: str
@@ -35,6 +42,7 @@ class DashboardResponse(BaseModel):
     recommendedExercise: Exercise | None
     masteryProfile: list[KnowledgeComponent]
     learningPath: list[KnowledgeComponent]
+    dashboardSeries: list[DashboardSeriesPoint]
 
 
 class DashboardTotals(BaseModel):

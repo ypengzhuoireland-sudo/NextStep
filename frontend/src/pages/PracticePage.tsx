@@ -2,7 +2,6 @@ import { motion } from "framer-motion";
 import { useState } from "react";
 import { AlertTriangle } from "lucide-react";
 import { StudyAssistantDialog } from "@/components/assistant/StudyAssistantDialog";
-import { LearningAnalytics } from "@/components/dashboard/LearningAnalytics";
 import { SessionHeader } from "@/components/dashboard/SessionHeader";
 import { LoadingScreen } from "@/components/common/LoadingScreen";
 import { CodeEditor } from "@/components/exercise/CodeEditor";
@@ -173,10 +172,8 @@ export function PracticePage({
           initial={{ opacity: 0, y: 18 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.08, duration: 0.45, ease: "easeOut" }}
-          className="grid gap-4 2xl:grid-cols-[1fr_0.95fr]"
         >
           <SubmitResultPanel result={session.latestResult} />
-          <LearningAnalytics data={session.dashboardSeries} />
         </motion.section>
       </div>
       {SHOW_AI_ASSISTANT ? (

@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { getStudentDashboardSummary } from "@/api/dashboard";
 import { StatPill } from "@/components/common/StatPill";
+import { LearningAnalytics } from "@/components/dashboard/LearningAnalytics";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -143,6 +144,8 @@ export function StudentDashboardPage({ onOpenPractice, onLogout }: StudentDashbo
             value={summary.recommendedExercise?.title ?? "None"}
           />
         </motion.section>
+
+        <LearningAnalytics data={summary.dashboardSeries} />
 
         <section className="grid gap-4 xl:grid-cols-[1fr_420px]">
           <Card>

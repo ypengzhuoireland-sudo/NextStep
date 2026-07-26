@@ -1,5 +1,5 @@
 import { apiRequest } from "@/api/client";
-import { getMockDashboard, USE_MOCK_API, wait } from "@/api/mock";
+import { getMockDashboard, getMockSession, USE_MOCK_API, wait } from "@/api/mock";
 import type {
   ClassDashboardSummary,
   ClassStudentDetail,
@@ -84,6 +84,12 @@ interface StudentDashboardApiResponse {
     trend: number;
     state: StudentDashboardSummary["learningPath"][number]["state"];
   }>;
+  dashboardSeries: Array<{
+    label: string;
+    masteryAverage: number;
+    attempts: number;
+    hints: number;
+  }>;
 }
 
 interface ClassStudentDirectoryApiResponse {
@@ -155,11 +161,22 @@ export async function getStudentDashboardSummary(): Promise<StudentDashboardSumm
       recommendedExerciseId: "",
       recommendedExercise: null,
       masteryProfile: profile,
-      learningPath: [...profile].sort((a, b) => a.mastery - b.mastery).slice(0, 5)
+      learningPath: [...profile].sort((a, b) => a.mastery - b.mastery).slice(0, 5),
+      dashboardSeries: getMockSession().dashboardSeries
     };
   }
 
-  return apiRequest<StudentDashboardApiResponse>("/dashboard/student");
+  const response = await apiRequest<StudentDashboardApiResponse>("/dashboard/student");
+
+  return {
+    ...response,
+    dashboardSeries: response.dashboardSeries.map((point) => ({
+      name: point.label,
+      mastery: point.masteryAverage,
+      attempts: point.attempts,
+      hints: point.hints
+    }))
+  };
 }
 
 /** Return class dashboard summary. */

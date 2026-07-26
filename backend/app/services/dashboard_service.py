@@ -26,9 +26,11 @@ from app.schemas.dashboard import (
     RiskStudent,
     WeakKcSummary,
 )
+from app.schemas.mastery import StudentMasteryProfile
 from app.schemas.sessions import UserProfile
 from app.services.exercise_service import to_frontend_status
 from app.services.mastery_service import mastery_state
+from app.services.practice_service import build_dashboard_series
 from app.services.recommendation_service import choose_recommended_exercise
 
 
@@ -43,6 +45,11 @@ def build_dashboard_response(db: Session, current_user: UserProfile) -> Dashboar
     active_goal = "Practice weak Python concepts"
     backend_status = "connected"
     learning_path = sorted(kcs, key=lambda kc: kc.mastery)[:5]
+    mastery_profile = StudentMasteryProfile(
+        student_id=current_user.student_id,
+        updated_at=datetime.now(timezone.utc).isoformat(),
+        items=[kc.model_dump() for kc in kcs],
+    )
 
     return DashboardResponse(
         studentId=current_user.student_id,
@@ -54,6 +61,10 @@ def build_dashboard_response(db: Session, current_user: UserProfile) -> Dashboar
         recommendedExercise=recommended,
         masteryProfile=kcs,
         learningPath=learning_path,
+        dashboardSeries=[
+            point.model_dump()
+            for point in build_dashboard_series(db, current_user.student_id, mastery_profile)
+        ],
     )
 
 
