@@ -1,12 +1,15 @@
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
+import logging
 import os
 from pathlib import Path
+from threading import Thread
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
+from sqlalchemy import text
 
 from app.api.assistant import router as assistant_router
 from app.api.dashboard import router as dashboard_router
@@ -23,6 +26,7 @@ from app.api.student_auth import router as student_auth_router
 from app.api.student_auth import teacher_router
 from app.api.submissions import router as submissions_router
 from app.db.init_db import init_db
+from app.db.session import engine
 
 DEFAULT_ALLOWED_ORIGINS = [
     "http://localhost:3000",
@@ -31,14 +35,29 @@ DEFAULT_ALLOWED_ORIGINS = [
     "http://127.0.0.1:5173",
 ]
 FRONTEND_DIST = Path(__file__).resolve().parents[1] / "static"
+DB_INIT_ADVISORY_LOCK_ID = 2026072601
+logger = logging.getLogger(__name__)
 
 
 def initialize_database_on_startup() -> None:
-    """Initialize or migrate the database when the app starts."""
+    """Schedule database initialization without blocking the web process."""
     if os.getenv("SKIP_DB_INIT_ON_STARTUP", "").lower() in {"1", "true", "yes"}:
         return
 
-    init_db()
+    Thread(target=run_database_initialization, daemon=True).start()
+
+
+def run_database_initialization() -> None:
+    """Initialize the database once across concurrent app workers."""
+    try:
+        with engine.begin() as connection:
+            connection.execute(
+                text("SELECT pg_advisory_xact_lock(:lock_id)"),
+                {"lock_id": DB_INIT_ADVISORY_LOCK_ID},
+            )
+            init_db()
+    except Exception:
+        logger.exception("Database initialization failed")
 
 
 @asynccontextmanager
